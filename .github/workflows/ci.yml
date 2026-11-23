@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
+jobs:
+  build-test:
+    name: Build & test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - run: dotnet restore
+
+      - name: Verify formatting
+        if: runner.os == 'Linux'
+        run: dotnet format --verify-no-changes --no-restore
+
+      - run: dotnet build --no-restore -c Release
+
+      - name: Test
+        run: >
+          dotnet test --no-build -c Release
+          --logger "trx;LogFilePrefix=tests"
+          --collect "XPlat Code Coverage"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}
+          path: TestResults
+          if-no-files-found: warn
+
+  pack:
+    name: Pack & smoke-test tool
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Pack
+        run: dotnet pack -c Release -o artifacts /p:Version=0.0.0-ci.${{ github.run_number }}
+
+      - name: Install tool from local package
+        run: dotnet tool install LegacyMigrationScanner --tool-path ./tools --add-source ./artifacts --version 0.0.0-ci.${{ github.run_number }}
+
+      - name: Self-scan fixture
+        # The fixture is full of blockers on purpose: exit code 2 (--fail-on threshold) is the expected outcome.
+        shell: bash
+        run: |
+          set +e
+          ./tools/lms scan tests/Fixtures/LegacyShop --offline -o lms-report -f json,md,sarif --fail-on critical
+          code=$?
+          set -e
+          if [ "$code" -ne 2 ]; then echo "Expected exit code 2, got $code"; exit 1; fi
+          cat lms-report/LegacyShop.migration-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: artifacts/*.nupkg
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fixture-report
+          path: lms-report

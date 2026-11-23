@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LegacyMigrationScanner.Core/LegacyMigrationScanner.Core.csproj" />
+    <Project Path="src/LegacyMigrationScanner.Cli/LegacyMigrationScanner.Cli.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LegacyMigrationScanner.Tests/LegacyMigrationScanner.Tests.csproj" />
+  </Folder>
+</Solution>

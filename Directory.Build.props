@@ -1,0 +1,39 @@
+<Project>
+  <PropertyGroup Label="Language">
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Quality">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>Recommended</AnalysisMode>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- Needed for IDE0005 (unused usings) on build; public API docs are not enforced (CS1591). -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- CA2007 (ConfigureAwait) is noise for a CLI/library without a SynchronizationContext. -->
+    <NoWarn>$(NoWarn);CA2007;CS1591</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Build">
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Package">
+    <Version>0.2.0</Version>
+    <Authors>Alex</Authors>
+    <Copyright>Copyright (c) 2026 Alex</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/alexander-bedenko/LegacyMigrationScanner</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/alexander-bedenko/LegacyMigrationScanner</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>dotnet;migration;dotnet-framework;modernization;system-web;wcf;roslyn;static-analysis</PackageTags>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>

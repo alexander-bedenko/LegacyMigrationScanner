@@ -1,0 +1,3 @@
+<#@ template language="C#" debug="false" hostspecific="true"#>
+<#@ output extension=".cs"#>
+// T4 template generating DbContext from ShopModel.edmx

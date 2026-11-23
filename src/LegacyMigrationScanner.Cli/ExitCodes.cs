@@ -1,0 +1,10 @@
+namespace LegacyMigrationScanner.Cli;
+
+internal static class ExitCodes
+{
+    public const int Success = 0;
+    public const int ScanFailed = 1;
+    public const int ThresholdExceeded = 2;
+    public const int InvalidArguments = 64;
+    public const int Cancelled = 130;
+}

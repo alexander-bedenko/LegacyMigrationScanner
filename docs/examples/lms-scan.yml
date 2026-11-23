@@ -1,0 +1,34 @@
+# Example workflow for a repository that contains a .NET Framework solution.
+# Copy to .github/workflows/ in that repository.
+name: Migration scan
+
+on:
+  pull_request:
+  schedule:
+    - cron: '17 4 * * 1'   # weekly trend
+
+permissions:
+  contents: read
+  security-events: write   # upload SARIF to code scanning
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest   # no Visual Studio / .NET Framework needed
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet tool install -g LegacyMigrationScanner
+      - name: Scan
+        run: lms scan src/MyLegacyApp.sln -o lms-report -f json,md,sarif --sarif-root "$GITHUB_WORKSPACE"
+        # Add --fail-on critical to block PRs that introduce new blockers (combine with a baseline).
+      - uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: lms-report/MyLegacyApp.migration-report.sarif
+          category: legacy-migration
+      - run: cat lms-report/*.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: migration-report
+          path: lms-report
