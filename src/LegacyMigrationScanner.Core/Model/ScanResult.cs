@@ -50,6 +50,9 @@ public sealed record ScanResult
     /// <summary>Classification of every distinct package version referenced by the solution.</summary>
     public IReadOnlyList<PackageCompatibility> Packages { get; init; } = [];
 
+    /// <summary>Diff against a previous report when scanned with <c>--baseline</c>; null otherwise.</summary>
+    public Baselines.BaselineComparison? Baseline { get; init; }
+
     /// <summary>Rule catalog used for the scan (for SARIF rule metadata); not serialized into the JSON report.</summary>
     [JsonIgnore]
     public IReadOnlyList<RuleDefinition> Rules { get; init; } = [];

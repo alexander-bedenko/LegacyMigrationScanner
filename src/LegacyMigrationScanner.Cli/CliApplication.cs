@@ -1,4 +1,5 @@
 using LegacyMigrationScanner.Core;
+using LegacyMigrationScanner.Core.Baselines;
 using LegacyMigrationScanner.Core.Model;
 using LegacyMigrationScanner.Core.Reporting;
 using Microsoft.Extensions.DependencyInjection;
@@ -77,15 +78,26 @@ internal static class CliApplication
 
         try
         {
+            // Loaded before scanning to fail fast, and before reports are written so the baseline may be overwritten.
+            var baseline = options.BaselinePath is null ? null : Baseline.Load(options.BaselinePath);
+
             var scanner = provider.GetRequiredService<IMigrationScanner>();
             var result = await scanner.ScanAsync(options.Path!, cancellationToken);
+
+            if (baseline is not null)
+            {
+                if (!string.Equals(baseline.Solution, result.Solution, StringComparison.OrdinalIgnoreCase))
+                {
+                    await stderr.WriteLineAsync($"warning: baseline was produced for '{baseline.Solution}', scanning '{result.Solution}'.");
+                }
+
+                result = result with { Baseline = BaselineComparison.Compare(result, baseline, options.BaselinePath!) };
+            }
 
             await WriteReportsAsync(result, options, stdout, cancellationToken);
             ConsoleSummary.Print(result, stdout);
 
-            return options.FailOn is { } threshold && result.Findings.Any(f => f.Severity >= threshold)
-                ? ExitCodes.ThresholdExceeded
-                : ExitCodes.Success;
+            return ExceedsThreshold(result, options) ? ExitCodes.ThresholdExceeded : ExitCodes.Success;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -103,6 +115,17 @@ internal static class CliApplication
             await stderr.WriteLineAsync($"error: {ex.Message}");
             return ExitCodes.ScanFailed;
         }
+    }
+
+    /// <summary>
+    /// --fail-on: any finding at or above the severity. --fail-on-new: only new findings count,
+    /// at or above --fail-on when given, otherwise any new finding.
+    /// </summary>
+    internal static bool ExceedsThreshold(ScanResult result, CliOptions options)
+    {
+        var candidates = options.FailOnNew ? result.Baseline?.New ?? [] : result.Findings;
+        var threshold = options.FailOn ?? (options.FailOnNew ? Severity.Info : (Severity?)null);
+        return threshold is { } t && candidates.Any(f => f.Severity >= t);
     }
 
     private static async Task WriteReportsAsync(ScanResult result, CliOptions options, TextWriter stdout, CancellationToken cancellationToken)

@@ -29,9 +29,13 @@ Done: stages 0–3, SARIF, DI/async pipeline, CI/CD. See `docs/ROADMAP.md`.
 Real-package build verified locally: build, 117 tests, format, sample scan all green. Repo-local `nuget.config`
 pins nuget.org (the machine-wide config has a corporate feed that hangs restore).
 
-Pending housekeeping:
-- `.github/` restored, repo URLs use `alexander-bedenko`, local git repo initialized (branch `main`).
-- Remaining: create the GitHub repo `alexander-bedenko/LegacyMigrationScanner` and push (needs `gh auth login` by Alex).
+Published: https://github.com/alexander-bedenko/LegacyMigrationScanner (public, `main`); first CI run green
+on Linux + Windows incl. pack/smoke test. `NUGET_API_KEY` secret not set yet (release skips NuGet push).
 
-Stage 4 done on branch `feature/calibrate` (Unreleased): `lms calibrate`, code in `Core/Calibration/` and
-`Cli/CalibrateCommand.cs`. Stage 6 (`--baseline` / `--fail-on-new`) is in PR #8 on `feature/baseline`.
+Stage 6 done (Unreleased): `--baseline` / `--fail-on-new`, code in `Core/Baselines/`; `Finding.Fingerprint` is set by
+`MigrationScanner` and reused by SARIF — keep `FindingFingerprint` v1 inputs stable (bump to v2 if they must change).
+
+Stage 4 done (Unreleased): `lms calibrate`, code in `Core/Calibration/` and `Cli/CalibrateCommand.cs`. Fits only
+`hoursPerPoint` (ratio of sums); per-rule fitting intentionally out of scope (ADR 0003).
+
+Next candidates (ROADMAP): 5b HTML dashboard, 7 deep mode, 8 MCP server.
