@@ -5,6 +5,8 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-24
+
 ### Added
 - `--baseline <report.json>`: diff against a previous JSON report by finding fingerprint (`lmsFindingHash/v1`,
   ignores line numbers and counts). Console summary and Markdown report show new / fixed / unchanged findings,
@@ -57,3 +59,6 @@ versioning: [SemVer](https://semver.org/).
 - 39 rules: project format, System.Web, WCF, platform APIs, EF6/EDMX, configuration, packages (offline catalog).
 - Effort model (log/linear scaling, P50/P90) and migration waves (topological order).
 - Synthetic .NET Framework 4.8 fixture solution and xUnit test suite.
+
+[Unreleased]: https://github.com/alexander-bedenko/LegacyMigrationScanner/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/alexander-bedenko/LegacyMigrationScanner/releases/tag/v0.3.0
