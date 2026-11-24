@@ -97,7 +97,7 @@ public sealed class MarkdownReportWriter : IReportWriter
             {
                 var location = f.File is null ? "" : f.Line is null ? f.File : $"{f.File}:{f.Line}";
                 var recommendation = f.Category == FindingCategory.Package ? f.Recommendation : "";
-                w.WriteLine($"| {f.Severity} | {f.RuleId} {Escape(f.Title)} | `{location}` | {f.Count} | {Escape(f.Detail)} | {Escape(recommendation)} |");
+                w.WriteLine($"| {f.Severity} | {f.RuleId} {Escape(f.Title)} | {Code(location)} | {f.Count} | {Escape(f.Detail)} | {Escape(recommendation)} |");
             }
         }
 
@@ -134,7 +134,7 @@ public sealed class MarkdownReportWriter : IReportWriter
             foreach (var f in b.New)
             {
                 var location = f.File is null ? "" : f.Line is null ? f.File : $"{f.File}:{f.Line}";
-                w.WriteLine($"| {f.Severity} | {f.RuleId} {Escape(f.Title)} | {Escape(f.Project)} | `{location}` | {Escape(f.Detail)} |");
+                w.WriteLine($"| {f.Severity} | {f.RuleId} {Escape(f.Title)} | {Escape(f.Project)} | {Code(location)} | {Escape(f.Detail)} |");
             }
 
             w.WriteLine();
@@ -148,7 +148,7 @@ public sealed class MarkdownReportWriter : IReportWriter
             w.WriteLine("|---|---|---|---|---|");
             foreach (var f in b.Fixed)
             {
-                w.WriteLine($"| {f.Severity} | {f.RuleId} {Escape(f.Title)} | {Escape(f.Project)} | `{f.File}` | {Escape(f.Detail)} |");
+                w.WriteLine($"| {f.Severity} | {f.RuleId} {Escape(f.Title)} | {Escape(f.Project)} | {Code(f.File)} | {Escape(f.Detail)} |");
             }
 
             w.WriteLine();
@@ -185,6 +185,9 @@ public sealed class MarkdownReportWriter : IReportWriter
         "Yellow" => "🟡 Yellow",
         _ => "🟢 Green",
     };
+
+    /// <summary>Inline code span; empty for missing values (an empty span renders as literal backticks).</summary>
+    private static string Code(string? text) => string.IsNullOrEmpty(text) ? "" : $"`{Escape(text)}`";
 
     private static string Escape(string? text)
     {

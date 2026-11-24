@@ -19,6 +19,9 @@ versioning: [SemVer](https://semver.org/).
 - Dropped the `Microsoft.SourceLink.GitHub` package (pulled vulnerable `Microsoft.Build.Tasks.Git` 8.0.0,
   GHSA-23fw-v26w-5fgq); Source Link is built into the .NET 8+ SDK.
 
+### Fixed
+- Markdown report no longer renders empty code spans (literal backticks) for project-level findings.
+
 ### Removed
 - Obsolete placeholder test files in the test project root.
 
