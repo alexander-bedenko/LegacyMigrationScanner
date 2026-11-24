@@ -35,4 +35,7 @@ on Linux + Windows incl. pack/smoke test. `NUGET_API_KEY` secret not set yet (re
 Stage 6 done (Unreleased): `--baseline` / `--fail-on-new`, code in `Core/Baselines/`; `Finding.Fingerprint` is set by
 `MigrationScanner` and reused by SARIF — keep `FindingFingerprint` v1 inputs stable (bump to v2 if they must change).
 
-Next candidates (ROADMAP): stage 4 `lms calibrate`, 5b HTML dashboard, 7 deep mode, 8 MCP server.
+Stage 4 done (Unreleased): `lms calibrate`, code in `Core/Calibration/` and `Cli/CalibrateCommand.cs`. Fits only
+`hoursPerPoint` (ratio of sums); per-rule fitting intentionally out of scope (ADR 0003).
+
+Next candidates (ROADMAP): 5b HTML dashboard, 7 deep mode, 8 MCP server.

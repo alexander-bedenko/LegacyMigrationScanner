@@ -19,4 +19,6 @@ Effort estimates are only trusted if people can see how they were produced and a
 ## Consequences
 
 - Estimates are heuristics; calibration against a completed migration is the documented way to make them meaningful.
-- A planned `calibrate` command can fit `hoursPerPoint` from historical data.
+- `lms calibrate` fits `hoursPerPoint` from historical data as `Σ actual hours / Σ P50 points` (ratio of sums:
+  unbiased in total, explainable) and reports per-project error and P90 coverage. Per-rule point fitting is
+  deliberately left out: a single past migration has too few data points and would overfit.

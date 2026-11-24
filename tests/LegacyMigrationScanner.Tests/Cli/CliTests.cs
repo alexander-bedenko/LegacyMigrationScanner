@@ -1,6 +1,7 @@
 using LegacyMigrationScanner.Cli;
 using LegacyMigrationScanner.Core.Model;
 using LegacyMigrationScanner.Tests.Baselines;
+using LegacyMigrationScanner.Tests.Calibration;
 using LegacyMigrationScanner.Tests.Infrastructure;
 using Microsoft.Extensions.Logging;
 
@@ -53,6 +54,11 @@ public sealed class CliTests : IDisposable
     [InlineData("scan a.sln --fail-on-new")]
     [InlineData("scan a.sln --baseline")]
     [InlineData("deploy")]
+    [InlineData("calibrate")]
+    [InlineData("calibrate r.json")]
+    [InlineData("calibrate r.json --actuals a.csv --actual-hours 10")]
+    [InlineData("calibrate r.json --actual-hours 0")]
+    [InlineData("calibrate r.json --actual-hours 10 --format json")]
     public async Task InvalidArguments_Return64(string commandLine)
     {
         var (code, _, stderr) = await RunAsync(commandLine.Split(' '));
@@ -90,6 +96,45 @@ public sealed class CliTests : IDisposable
         var (code, _, _) = await RunAsync("scan", TestHelpers.FixtureSolution, "-o", _output, "-f", "json", "--offline", "--fail-on", "critical");
 
         Assert.Equal(2, code);
+    }
+
+    [Fact]
+    public void Parse_Calibrate()
+    {
+        var o = CliOptions.Parse(["calibrate", "a.json", "b.json", "--actuals", "hours.csv", "-o", "cal.json"]);
+
+        Assert.Equal(CliCommand.Calibrate, o.Command);
+        Assert.Equal("a.json, b.json", TestHelpers.Join(o.Reports));
+        Assert.Equal("hours.csv", o.ActualsPath);
+        Assert.Null(o.ActualHours);
+        Assert.Equal("cal.json", o.CalibrationOutput);
+    }
+
+    [Fact]
+    public async Task Calibrate_PrintsHoursPerPoint_AndWritesJson()
+    {
+        var report = await CalibrationTests.WriteFixtureReportAsync(_output);
+        var actuals = Path.Combine(_output, "actuals.csv");
+        await File.WriteAllLinesAsync(actuals, ["project,hours", "LegacyShop.Web,150", "LegacyShop.Data,60", "LegacyShop.Services,80"]);
+        var json = Path.Combine(_output, "out", "calibration.json");
+
+        var (code, stdout, _) = await RunAsync("calibrate", report, "--actuals", actuals, "-o", json);
+
+        Assert.Equal(0, code);
+        Assert.Contains("Calibrated hours per point:", stdout);
+        Assert.Contains("--hours-per-point", stdout);
+        using var doc = System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(json));
+        Assert.True(doc.RootElement.GetProperty("hoursPerPoint").GetDouble() > 0);
+        Assert.Equal(3, doc.RootElement.GetProperty("projects").GetArrayLength());
+    }
+
+    [Fact]
+    public async Task Calibrate_MissingReport_ReturnsScanFailed()
+    {
+        var (code, _, stderr) = await RunAsync("calibrate", Path.Combine(_output, "none.json"), "--actual-hours", "100");
+
+        Assert.Equal(1, code);
+        Assert.Contains("Report not found", stderr);
     }
 
     [Fact]

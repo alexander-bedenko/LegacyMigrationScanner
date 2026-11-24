@@ -68,6 +68,21 @@ Findings are matched by a stable fingerprint (`lmsFindingHash/v1`: rule, project
 so unrelated edits do not make old findings "new". The Markdown report gets a *Changes since baseline* section,
 SARIF results carry `baselineState`, the JSON report a `baseline` object. Refresh the baseline when findings are fixed.
 
+### Calibrating the estimate
+
+`--hours-per-point` defaults to 2, which is a guess. If your team has already migrated a solution, fit it to that:
+scan the solution **as it was before the migration** (e.g. check out the old commit) and pass the actual hours.
+
+```bash
+lms scan old/MyApp.sln -f json -o before
+lms calibrate before/MyApp.migration-report.json --actuals hours.csv   # or: --actual-hours 640
+```
+
+`hours.csv` is `project,hours` (header optional, repeated rows are summed, so a time-tracking export grouped by
+sprint works). The fit is `Σ actual hours / Σ P50 points` over projects present in both. The output lists per-project
+error and how many projects stayed within P90, and warns about projects that took time but have no findings.
+Several reports can be combined; `-o calibration.json` saves the result.
+
 ### GitHub Actions
 
 Ready-to-copy workflow with SARIF upload: [`docs/examples/lms-scan.yml`](docs/examples/lms-scan.yml).
