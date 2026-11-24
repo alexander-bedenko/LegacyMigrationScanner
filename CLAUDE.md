@@ -23,22 +23,22 @@ dotnet run --project src/LegacyMigrationScanner.Cli -- scan tests/Fixtures/Legac
 - Every change: tests + `CHANGELOG.md` (Unreleased). Small targeted changes over broad rewrites.
 - `tests/Fixtures/**` are scan targets (legacy code on purpose) — not part of the build; keep `EndToEndTests` in sync.
 
-## State (0.2.0, 2026-11-23)
+## State (0.3.0, 2026-11-24)
 
-Done: stages 0–3, SARIF, DI/async pipeline, CI/CD. See `docs/ROADMAP.md`.
-Real-package build verified locally: build, 117 tests, format, sample scan all green. Repo-local `nuget.config`
-pins nuget.org (the machine-wide config has a corporate feed that hangs restore).
+Done: stages 0–6 except 7–8 (see `docs/ROADMAP.md`): SARIF, DI/async pipeline, CI/CD, online packages,
+`lms calibrate` (stage 4), `-f html` (5b), `--baseline` / `--fail-on-new` (6).
+Published: https://github.com/alexander-bedenko/LegacyMigrationScanner (public). Releases: push tag `vX.Y.Z` →
+`release.yml` builds, tests, packs, takes notes from the `## [X.Y.Z]` CHANGELOG section (fails without it) and creates a
+GitHub Release with the .nupkg files. `NUGET_API_KEY` secret is not set, so nothing is pushed to NuGet.org yet.
+Repo-local `nuget.config` pins nuget.org (the machine-wide config has a corporate feed that hangs restore).
 
-Published: https://github.com/alexander-bedenko/LegacyMigrationScanner (public, `main`); first CI run green
-on Linux + Windows incl. pack/smoke test. `NUGET_API_KEY` secret not set yet (release skips NuGet push).
+Design notes:
+- `Finding.Fingerprint` (`Core/Baselines/FindingFingerprint`) is set by `MigrationScanner` and reused by SARIF —
+  keep `lmsFindingHash/v1` inputs stable (bump to v2 if they must change).
+- `lms calibrate` fits only `hoursPerPoint` (ratio of sums); per-rule fitting intentionally out of scope (ADR 0003).
+- `HtmlReportWriter` output must stay a single file free of external requests (tested).
 
-Stage 6 done (Unreleased): `--baseline` / `--fail-on-new`, code in `Core/Baselines/`; `Finding.Fingerprint` is set by
-`MigrationScanner` and reused by SARIF — keep `FindingFingerprint` v1 inputs stable (bump to v2 if they must change).
+Release checklist: move Unreleased → `## [X.Y.Z] - date` + link refs at the bottom of CHANGELOG, bump `<Version>` in
+`Directory.Build.props`, regenerate `docs/sample-report.md`, merge, then tag the merge commit.
 
-Stage 4 done (Unreleased): `lms calibrate`, code in `Core/Calibration/` and `Cli/CalibrateCommand.cs`. Fits only
-`hoursPerPoint` (ratio of sums); per-rule fitting intentionally out of scope (ADR 0003).
-
-Stage 5b done (Unreleased): `-f html` → `Reporting/HtmlReportWriter.cs`, single file, inline CSS/JS, must stay
-free of external requests (tested).
-
-Next candidates (ROADMAP): 7 deep mode (MSBuildWorkspace), 8 MCP server.
+Next candidates (ROADMAP): 8 MCP server (AI layer), 7 deep mode (MSBuildWorkspace; needs an ADR superseding 0001's scope).

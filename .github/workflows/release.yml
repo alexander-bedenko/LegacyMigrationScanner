@@ -39,7 +39,15 @@ jobs:
         if: env.NUGET_API_KEY != ''
         run: dotnet nuget push "artifacts/*.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
 
+      - name: Extract release notes from CHANGELOG
+        # The tag must have a "## [x.y.z]" section in CHANGELOG.md; fail rather than publish a release without notes.
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          awk -v ver="$VERSION" 'index($0, "## [" ver "]") == 1 {found=1; next} found && /^## \[/ {exit} found {print}' CHANGELOG.md > release-notes.md
+          if ! grep -q '[^[:space:]]' release-notes.md; then echo "::error::CHANGELOG.md has no section for $VERSION"; exit 1; fi
+
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" artifacts/*.nupkg --title "$GITHUB_REF_NAME" --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" artifacts/*.nupkg --title "$GITHUB_REF_NAME" --notes-file release-notes.md --generate-notes

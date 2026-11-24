@@ -1,21 +1,21 @@
 # Migration report: LegacyShop.sln
 
-Scanned 2026-11-23 20:41 with Legacy Migration Scanner 0.2.0. Estimate assumes 2 h per point.
+Scanned 2026-11-24 09:53 with Legacy Migration Scanner 0.3.0. Estimate assumes 2 h per point.
 
 ## Summary
 
 | Metric | Value |
 |---|---|
 | Projects | 4 |
-| Findings (critical / warning / info) | 17 / 28 / 13 |
-| Estimated effort, P50 | 221 h (~27.6 person-days) |
-| Estimated effort, P90 | 378 h (~47.3 person-days) |
+| Findings (critical / warning / info) | 17 / 29 / 12 |
+| Estimated effort, P50 | 223 h (~27.9 person-days) |
+| Estimated effort, P90 | 381 h (~47.6 person-days) |
 
 ## Projects
 
 | Project | Kind | Format | Target | LOC | Readiness | P50, h | P90, h | Top cost drivers |
 |---|---|---|---|---:|---|---:|---:|---|
-| LegacyShop.Web | AspNetWebApplication | Legacy | v4.8 | 95 | 🔴 Red | 114 | 182 | LMS004 (8), LMS600 (7), LMS113 (6) |
+| LegacyShop.Web | AspNetWebApplication | Legacy | v4.8 | 95 | 🔴 Red | 116 | 185 | LMS004 (8), LMS600 (7), LMS113 (6) |
 | LegacyShop.Data | ClassLibrary | Legacy | v4.8 | 55 | 🔴 Red | 55 | 95 | LMS400 (8), LMS302 (7.8), LMS402 (2) |
 | LegacyShop.Services | WcfService | Legacy | v4.8 | 57 | 🔴 Red | 52 | 101 | LMS210 (6), LMS005 (5), LMS301 (5) |
 | LegacyShop.Common | ClassLibrary | SDK | netstandard2.0 | 9 | 🟢 Green | 0 | 0 |  |
@@ -58,13 +58,13 @@ Projects in the same wave do not depend on each other and can be migrated in par
 | LMS402 | Warning | Entity Framework 6 (System.Data.Entity) | 1 | 2 | EF6 6.3+ runs on modern .NET (lowest-risk first step). Migrating to EF Core is a separate effort: query translation, lazy loading and configuration differ. |
 | LMS500 | Warning | Custom configuration sections | 2 | 2 | Move to appsettings.json bound with IOptions<T>. |
 | LMS600 | Warning | Package must be replaced | 1 | 7 | See details below |
+| LMS606 | Warning | Package not found on configured feeds | 1 | 1 | See details below |
 | LMS003 | Info | Targets .NET Framework | 3 | 3 | Retarget to net10.0 (or multi-target netstandard2.0;net48 for shared libraries during a gradual migration). |
 | LMS304 | Info | Windows Registry access | 1 | 1 | Works on Windows only. Prefer configuration (appsettings / environment variables) if the target is containers/Linux. |
 | LMS306 | Info | ConfigurationManager usage | 1 | 1 | Works via the System.Configuration.ConfigurationManager package, but prefer IConfiguration / IOptions<T> with appsettings.json. |
 | LMS401 | Info | T4 text templates | 1 | 1 | T4 is not run by dotnet build. Commit generated code or switch to source generators. |
 | LMS601 | Info | Package must be upgraded | 2 | 2 | See details below |
 | LMS602 | Info | Package not needed on modern .NET | 1 | 3 | See details below |
-| LMS603 | Info | Package compatibility unknown | 1 | 1 | See details below |
 | LMS605 | Info | Package works but is deprecated / needs review | 1 | 1 | See details below |
 
 ## Details
@@ -134,13 +134,13 @@ Projects in the same wave do not depend on each other and can be migrated in par
 | Warning | LMS600 Package must be replaced | `LegacyShop.Web/packages.config` | 1 | Microsoft.Owin.Host.SystemWeb 4.2.2 | Use ASP.NET Core middleware pipeline. |
 | Warning | LMS600 Package must be replaced | `LegacyShop.Web/packages.config` | 1 | Unity.WebAPI 5.4.0 | Use Microsoft.Extensions.DependencyInjection (or Unity.Microsoft.DependencyInjection). |
 | Warning | LMS600 Package must be replaced | `LegacyShop.Web/packages.config` | 1 | WindowsAzure.ServiceBus 6.2.2 | Use Azure.Messaging.ServiceBus. |
+| Warning | LMS606 Package not found on configured feeds | `LegacyShop.Web/packages.config` | 1 | Acme.Internal.Billing 1.4.0 | Usually an internal package: add its feed with --nuget-source, or plan to multi-target it (netstandard2.0;net48) before migrating consumers. |
 | Info | LMS003 Targets .NET Framework | `LegacyShop.Web/LegacyShop.Web.csproj` | 1 | v4.8 |  |
 | Info | LMS306 ConfigurationManager usage | `LegacyShop.Web/Controllers/OrdersController.cs:11` | 1 | AppSettings |  |
 | Info | LMS601 Package must be upgraded | `LegacyShop.Web/packages.config` | 1 | EntityFramework 6.2.0 -> 6.3.0 | Use EntityFramework 6.5.x (or migrate to EF Core separately). |
 | Info | LMS602 Package not needed on modern .NET | `LegacyShop.Web/packages.config` | 1 | Microsoft.CodeDom.Providers.DotNetCompilerPlatform 2.0.1 | Remove the package; the functionality is built into the SDK/runtime. |
 | Info | LMS602 Package not needed on modern .NET | `LegacyShop.Web/packages.config` | 1 | Microsoft.Web.Infrastructure 2.0.0 | Remove the package; the functionality is built into the SDK/runtime. |
 | Info | LMS602 Package not needed on modern .NET | `LegacyShop.Web/packages.config` | 1 | Owin 1.0 | Remove the package; the functionality is built into the SDK/runtime. |
-| Info | LMS603 Package compatibility unknown | `LegacyShop.Web/packages.config` | 1 | Acme.Internal.Billing 1.4.0: Offline mode: not in the package catalog | Compatibility could not be determined (offline mode, lookup failure or missing metadata). Check the package's supported frameworks manually. |
 
 ## Packages
 
@@ -160,6 +160,6 @@ Projects in the same wave do not depend on each other and can be migrated in par
 | Microsoft.Web.Infrastructure | 2.0.0 | Remove |  | catalog |  |
 | Owin | 1.0 | Remove |  | catalog |  |
 | NEST | 7.17.5 | Review | Elastic.Clients.Elasticsearch (for Elasticsearch 8+) | catalog |  |
-| Acme.Internal.Billing | 1.4.0 | Unknown |  | offline | Offline mode: not in the package catalog |
+| Acme.Internal.Billing | 1.4.0 | NotFound |  | api.nuget.org | Not found on configured NuGet sources |
 
 No issues found in: LegacyShop.Common.

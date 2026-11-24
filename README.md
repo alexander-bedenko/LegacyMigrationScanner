@@ -24,6 +24,10 @@ dotnet tool install -g LegacyMigrationScanner
 lms scan C:\src\MyLegacyApp\MyLegacyApp.sln
 ```
 
+If the package is not on NuGet.org yet, download `LegacyMigrationScanner.<version>.nupkg` from
+[GitHub Releases](https://github.com/alexander-bedenko/LegacyMigrationScanner/releases) and install from that folder:
+`dotnet tool install -g LegacyMigrationScanner --add-source <download-folder>`.
+
 From source:
 
 ```bash
