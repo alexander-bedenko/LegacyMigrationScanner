@@ -5,6 +5,11 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- `lms calibrate <report.json>... --actuals <project,hours csv> | --actual-hours <n>`: fits `--hours-per-point`
+  from a completed migration (`Σ actual hours / Σ P50 points`), prints per-project error, mean absolute error and
+  P90 coverage, warns about unmatched or zero-point projects; `-o` writes the result as JSON.
+
 ### Changed
 - Repository-local `nuget.config` (nuget.org only) for reproducible restore independent of machine-wide feeds.
 - Repository URLs point to `github.com/alexander-bedenko/LegacyMigrationScanner`.

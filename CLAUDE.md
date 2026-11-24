@@ -33,4 +33,5 @@ Pending housekeeping:
 - `.github/` restored, repo URLs use `alexander-bedenko`, local git repo initialized (branch `main`).
 - Remaining: create the GitHub repo `alexander-bedenko/LegacyMigrationScanner` and push (needs `gh auth login` by Alex).
 
-Next: stage 6 — `--baseline <report.json>` + `--fail-on-new` (diff by SARIF fingerprint `lmsFindingHash/v1`).
+Stage 4 done on branch `feature/calibrate` (Unreleased): `lms calibrate`, code in `Core/Calibration/` and
+`Cli/CalibrateCommand.cs`. Stage 6 (`--baseline` / `--fail-on-new`) is in PR #8 on `feature/baseline`.

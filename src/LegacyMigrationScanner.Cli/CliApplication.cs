@@ -42,6 +42,11 @@ internal static class CliApplication
             return ExitCodes.Success;
         }
 
+        if (options.Command == CliCommand.Calibrate)
+        {
+            return await CalibrateCommand.RunAsync(options, stdout, stderr, cancellationToken);
+        }
+
         var services = new ServiceCollection();
         services.AddLogging(logging =>
         {

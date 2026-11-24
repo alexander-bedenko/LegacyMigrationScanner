@@ -9,7 +9,7 @@
 | — Архитектура | Async DI-пайплайн, `IMigrationScanner`, LoggerMessage, параллельный анализ, Ctrl+C | ✅ 0.2.0 |
 | 3. Пакеты онлайн | NuGet V3 (несколько фидов), ретраи, кеш с TTL, `--offline` | ✅ 0.2.0 |
 | 5a. SARIF | SARIF 2.1.0 для GitHub Code Scanning | ✅ 0.2.0 |
-| 4. Калибровка | Команда `lms calibrate`: подбор hoursPerPoint по фактическим часам прошлой миграции | ⏳ |
+| 4. Калибровка | Команда `lms calibrate`: подбор hoursPerPoint по фактическим часам прошлой миграции | ✅ Unreleased |
 | 5b. HTML | Однофайловый HTML-дашборд | ⏳ |
 | 6. Baseline | `--baseline <json>`: diff с прошлым прогоном, `--fail-on-new` для PR-гейтов | ⏳ Следующий |
 | 7. Глубокий режим | MSBuildWorkspace + семантическая модель; анализ бинарных ссылок (HintPath DLL) | ⏳ |

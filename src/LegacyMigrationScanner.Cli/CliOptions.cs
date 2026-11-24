@@ -5,6 +5,12 @@ using Microsoft.Extensions.Logging;
 
 namespace LegacyMigrationScanner.Cli;
 
+internal enum CliCommand
+{
+    Scan,
+    Calibrate,
+}
+
 internal sealed class CliOptions
 {
     public const string Usage = """
@@ -12,6 +18,7 @@ internal sealed class CliOptions
 
         Usage:
           lms scan <path> [options]
+          lms calibrate <report.json>... (--actuals <file> | --actual-hours <n>) [-o <file>]
           lms --version
 
         Arguments:
@@ -33,6 +40,12 @@ internal sealed class CliOptions
               --cache-dir <dir>       Package lookup cache directory (default: %LOCALAPPDATA%/LegacyMigrationScanner/cache)
               --no-cache              Disable the package lookup cache
 
+        Calibrate (fit --hours-per-point from a completed migration):
+          <report.json>...            JSON report(s) of the solution(s) as they were before the migration
+              --actuals <file>        CSV 'project,hours' with actual hours per project (repeated rows are summed)
+              --actual-hours <n>      Or: total actual hours for all given reports
+          -o, --output <file>         Also write the calibration result as JSON
+
         General:
           -v, --verbosity <level>     quiet | minimal | normal | detailed (default: minimal)
           -h, --help                  Show help
@@ -41,7 +54,13 @@ internal sealed class CliOptions
         Exit codes: 0 success, 1 scan failed, 2 --fail-on threshold exceeded, 64 invalid arguments, 130 cancelled.
         """;
 
+    public CliCommand Command { get; private set; } = CliCommand.Scan;
     public string? Path { get; private set; }
+    public IReadOnlyList<string> Reports => _reports;
+    public string? ActualsPath { get; private set; }
+    public double? ActualHours { get; private set; }
+    /// <summary>calibrate: optional JSON output file.</summary>
+    public string? CalibrationOutput { get; private set; }
     public string OutputDirectory { get; private set; } = "lms-report";
     public IReadOnlyList<string> Formats { get; private set; } = ["json", "md"];
     public string? SarifBaseDirectory { get; private set; }
@@ -57,6 +76,7 @@ internal sealed class CliOptions
     public bool ShowVersion { get; private set; }
 
     private readonly List<Uri> _sources = [];
+    private readonly List<string> _reports = [];
 
     public static CliOptions Parse(string[] args)
     {
@@ -72,6 +92,11 @@ internal sealed class CliOptions
         {
             options.ShowVersion = true;
             return options;
+        }
+
+        if (args[0] == "calibrate")
+        {
+            return ParseCalibrate(args, options);
         }
 
         if (args[0] != "scan")
@@ -145,6 +170,53 @@ internal sealed class CliOptions
         if (options.Path is null && !options.ShowHelp)
         {
             throw new ArgumentException("Missing <path> to a solution or project.");
+        }
+
+        return options;
+    }
+
+    private static CliOptions ParseCalibrate(string[] args, CliOptions options)
+    {
+        options.Command = CliCommand.Calibrate;
+        for (var i = 1; i < args.Length; i++)
+        {
+            var arg = args[i];
+            switch (arg)
+            {
+                case "-h" or "--help":
+                    options.ShowHelp = true;
+                    return options;
+                case "--actuals":
+                    options.ActualsPath = Next(args, ref i, arg);
+                    break;
+                case "--actual-hours":
+                    options.ActualHours = ParsePositiveDouble(Next(args, ref i, arg), arg);
+                    break;
+                case "-o" or "--output":
+                    options.CalibrationOutput = Next(args, ref i, arg);
+                    break;
+                case "-v" or "--verbosity":
+                    options.LogLevel = ParseVerbosity(Next(args, ref i, arg));
+                    break;
+                default:
+                    if (arg.StartsWith('-'))
+                    {
+                        throw new ArgumentException($"Unknown option '{arg}' for calibrate.");
+                    }
+
+                    options._reports.Add(arg);
+                    break;
+            }
+        }
+
+        if (options._reports.Count == 0)
+        {
+            throw new ArgumentException("calibrate: missing <report.json> (the JSON report of the solution before migration).");
+        }
+
+        if ((options.ActualsPath is null) == (options.ActualHours is null))
+        {
+            throw new ArgumentException("calibrate: specify exactly one of --actuals <file> or --actual-hours <n>.");
         }
 
         return options;
