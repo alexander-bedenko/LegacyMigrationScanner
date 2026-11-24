@@ -7,6 +7,8 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="coverlet.collector" />
+    <!-- Deep-mode tests compile the fixture against these; restored via NuGet so tests themselves stay offline. -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net48" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />
@@ -17,5 +19,9 @@
     <ProjectReference Include="..\..\src\LegacyMigrationScanner.Mcp\LegacyMigrationScanner.Mcp.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Net48ReferenceAssemblies</_Parameter1>
+      <_Parameter2>$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net48)</_Parameter2>
+    </AssemblyAttribute>
   </ItemGroup>
 </Project>

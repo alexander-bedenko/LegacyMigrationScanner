@@ -1,3 +1,4 @@
+using LegacyMigrationScanner.Core.Deep;
 using LegacyMigrationScanner.Core.Loading;
 using LegacyMigrationScanner.Core.Model;
 using LegacyMigrationScanner.Core.Packages;
@@ -17,8 +18,12 @@ public interface IProjectAnalyzer
 public sealed class AnalysisContext(
     string solutionDirectory,
     RuleCatalog rules,
-    IReadOnlyDictionary<string, PackageCompatibility>? packages = null)
+    IReadOnlyDictionary<string, PackageCompatibility>? packages = null,
+    DeepModel? deep = null)
 {
+    /// <summary>Compilations for deep mode (ADR 0005); null in the default syntax-only mode.</summary>
+    public DeepModel? Deep { get; } = deep;
+
     public string SolutionDirectory { get; } = solutionDirectory;
     public RuleCatalog Rules { get; } = rules;
 

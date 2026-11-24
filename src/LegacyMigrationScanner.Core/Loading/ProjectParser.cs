@@ -36,6 +36,14 @@ public static class ProjectParser
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
+        var hintPaths = Items(root, "Reference")
+            .Select(e => (Name: ((string?)e.Attribute("Include") ?? "").Split(',')[0].Trim(),
+                          Hint: e.Elements().FirstOrDefault(c => c.Name.LocalName == "HintPath")?.Value.Trim()))
+            .Where(r => r.Name.Length > 0 && !string.IsNullOrEmpty(r.Hint))
+            .Select(r => new HintPathReference(r.Name, FileSystemHelpers.Combine(projectDir, r.Hint!)))
+            .DistinctBy(r => r.FullPath, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
         var projectRefs = Items(root, "ProjectReference")
             .Select(e => (string?)e.Attribute("Include"))
             .Where(p => !string.IsNullOrWhiteSpace(p))
@@ -72,6 +80,7 @@ public static class ProjectParser
             ProjectTypeGuids = typeGuids,
             OutputType = Property(root, "OutputType"),
             AssemblyReferences = assemblyRefs,
+            HintPathReferences = hintPaths,
             ProjectReferences = projectRefs,
             Packages = packages,
             SourceFiles = sourceFiles,

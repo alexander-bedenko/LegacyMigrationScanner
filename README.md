@@ -50,6 +50,7 @@ lms scan <path> [options]
 | `--fail-on-new` | off | Exit code `2` if there are new findings vs `--baseline` (with `--fail-on`: only new ones of that severity or higher) |
 | `--hours-per-point <n>` | `2` | Hours per effort point |
 | `--rules <file>` | — | JSON overriding rule points/severity (calibration) |
+| `--deep` | off | Semantic analysis + vendored DLL inspection (see *Deep mode*) |
 | `--offline` | off | Catalog only, no network |
 | `--nuget-source <url>` | nuget.org | NuGet V3 service index; repeatable, queried in order |
 | `--cache-dir <dir>` / `--no-cache` | `%LOCALAPPDATA%/LegacyMigrationScanner/cache` | Package lookup cache |
@@ -71,6 +72,22 @@ lms scan src/MyLegacyApp.sln --baseline migration-baseline.json --fail-on-new --
 Findings are matched by a stable fingerprint (`lmsFindingHash/v1`: rule, project, file, detail — not line numbers),
 so unrelated edits do not make old findings "new". The Markdown report gets a *Changes since baseline* section,
 SARIF results carry `baselineState`, the JSON report a `baseline` object. Refresh the baseline when findings are fixed.
+
+### Deep mode
+
+By default analysis is syntax-only: fast and runs anywhere, but name-based. `--deep` compiles each .NET Framework
+project with Roslyn **without MSBuild or Visual Studio**: Compile items + the official .NET Framework reference
+assemblies (`Microsoft.NETFramework.ReferenceAssemblies.<tfm>`, downloaded once from your NuGet feed, ~45 MB on disk)
++ `HintPath` DLLs + referenced projects. Then every type used from the .NET Framework is checked against the modern
+.NET the tool runs on:
+
+- System.Web usage is reported by symbol (LMS110), so `HttpUtility` — which still exists — no longer counts;
+- APIs without a dedicated rule that are gone on modern .NET are reported as LMS310 (e.g. `System.Messaging`);
+- vendored DLLs (outside `packages/`) are inspected: LMS607 if they reference Framework-only assemblies, LMS608 if
+  they are built for .NET Framework.
+
+Restore NuGet packages first for complete results (unresolved references are skipped and reported as a warning).
+Compare baselines made in the same mode. Design: [ADR 0005](docs/adr/0005-deep-mode-without-msbuild.md).
 
 ### Calibrating the estimate
 
@@ -99,9 +116,11 @@ Ready-to-copy workflow with SARIF upload: [`docs/examples/lms-scan.yml`](docs/ex
 | System.Web | LMS100–115: Web Forms, Global.asax, HTTP modules/handlers, session, Web API 2, MVC 5, `HttpContext.Current`, OWIN, ASMX | code, config, files |
 | WCF | LMS200–212: `.svc`, server/client config, `[ServiceContract]`, `ClientBase<T>`, `ServiceHost` | code, config, files |
 | Platform | LMS300–306: Remoting, AppDomains, BinaryFormatter, System.Drawing, Registry, COM+, ConfigurationManager | code |
+| Platform (deep) | LMS310: other .NET Framework APIs that do not exist on modern .NET (e.g. MSMQ `System.Messaging`) | semantic model |
 | Data access | LMS400–402: EDMX, T4, EF6 | code, files |
 | Configuration | LMS500: custom config sections | config |
 | Packages | LMS600–606: replace / upgrade / remove / unknown / incompatible / review / not found | catalog + NuGet |
+| Binaries (deep) | LMS607–608: vendored `HintPath` DLLs built for .NET Framework (critical if they use Framework-only assemblies) | DLL metadata |
 
 Full catalog: [`rules.json`](src/LegacyMigrationScanner.Core/Rules/rules.json).
 
@@ -131,7 +150,7 @@ Claude Desktop / other clients (`mcpServers` config):
 
 All tools are read-only. They only read inside the allowed roots: the server's working directory by default, or the
 `--root <dir>` options (repeatable). The package and estimation options of `scan` (`--offline`, `--nuget-source`,
-`--hours-per-point`, `--rules`, cache options) apply too. Logs go to stderr; stdout is the protocol. See
+`--hours-per-point`, `--rules`, `--deep`, cache options) apply too. Logs go to stderr; stdout is the protocol. See
 [ADR 0004](docs/adr/0004-mcp-server.md).
 
 ## Using the engine as a library
@@ -155,6 +174,8 @@ var result = await services.GetRequiredService<IMigrationScanner>().ScanAsync("M
 src/LegacyMigrationScanner.Core
   Loading/       .sln/.slnx/.csproj/packages.config parsing, project classification
   Analyzers/     ProjectStructure, FileArtifact, Config, Code (Roslyn), Package   (parallel per project)
+                 + SemanticCode, BinaryReference in deep mode
+  Deep/          reference assemblies (NuGet), compilation builder, modern API catalog, DLL inspector
   Packages/      catalog, NuGet V3 client, compatibility service, file cache
   Rules/         rule catalog (embedded JSON) + overrides
   Estimation/    effort model, migration waves

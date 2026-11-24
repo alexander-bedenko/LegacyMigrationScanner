@@ -43,4 +43,13 @@ internal static partial class Log
 
     [LoggerMessage(3002, LogLevel.Warning, "Failed to save package cache to {Path}: {Error}")]
     public static partial void CacheSaveFailed(ILogger logger, string path, string error);
+
+    [LoggerMessage(4000, LogLevel.Information, "Downloading reference assemblies {PackageId} {Version} from {Source}")]
+    public static partial void DownloadingReferenceAssemblies(ILogger logger, string packageId, string version, Uri source);
+
+    [LoggerMessage(4001, LogLevel.Warning, "Reference assemblies {PackageId} unavailable: {Error}")]
+    public static partial void ReferenceAssembliesUnavailable(ILogger logger, string packageId, string error);
+
+    [LoggerMessage(4002, LogLevel.Debug, "Deep analysis: compiled {Project} with {ReferenceCount} references ({MissingHintPaths} missing HintPath files)")]
+    public static partial void ProjectCompiled(ILogger logger, string project, int referenceCount, int missingHintPaths);
 }

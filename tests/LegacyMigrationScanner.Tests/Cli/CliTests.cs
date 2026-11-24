@@ -103,11 +103,12 @@ public sealed class CliTests : IDisposable
     [Fact]
     public void Parse_Mcp_ReadsRootsAndScannerOptions()
     {
-        var o = CliOptions.Parse(["mcp", "--root", "a", "--root", "b", "--offline", "--hours-per-point", "3", "-v", "normal"]);
+        var o = CliOptions.Parse(["mcp", "--root", "a", "--root", "b", "--offline", "--deep", "--hours-per-point", "3", "-v", "normal"]);
 
         Assert.Equal(CliCommand.Mcp, o.Command);
         Assert.Equal("a, b", TestHelpers.Join(o.McpRoots));
         Assert.True(o.Offline);
+        Assert.True(o.Deep);
         Assert.Equal(3, o.HoursPerPoint);
         Assert.Equal(LogLevel.Information, o.LogLevel);
     }

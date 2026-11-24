@@ -11,6 +11,7 @@ internal sealed class FakeNuGetFeed : HttpMessageHandler
     private const string FlatContainer = "https://feed.test/v3-flatcontainer/";
 
     private readonly Dictionary<string, (HttpStatusCode Status, string Body)> _responses = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, byte[]> _binaries = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, int> _failuresBeforeSuccess = new(StringComparer.OrdinalIgnoreCase);
 
     public FakeNuGetFeed()
@@ -51,6 +52,15 @@ internal sealed class FakeNuGetFeed : HttpMessageHandler
         return this;
     }
 
+    /// <summary>Serves a .nupkg for id/version from the flat container.</summary>
+    public FakeNuGetFeed WithNupkg(string id, string version, byte[] content)
+    {
+        var lower = id.ToLowerInvariant();
+        var v = version.ToLowerInvariant();
+        _binaries[$"{FlatContainer}{lower}/{v}/{lower}.{v}.nupkg"] = content;
+        return this;
+    }
+
     public FakeNuGetFeed FailFirst(string urlSuffix, int times)
     {
         _failuresBeforeSuccess[urlSuffix] = times;
@@ -75,6 +85,11 @@ internal sealed class FakeNuGetFeed : HttpMessageHandler
                 _failuresBeforeSuccess[suffix] = remaining - 1;
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
             }
+        }
+
+        if (_binaries.TryGetValue(url.AbsoluteUri, out var bytes))
+        {
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) });
         }
 
         var (status, body) = _responses.TryGetValue(url.AbsoluteUri, out var r) ? r : (HttpStatusCode.NotFound, "");

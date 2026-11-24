@@ -13,6 +13,8 @@ public sealed class CodeAnalyzer : IProjectAnalyzer
 {
     public IEnumerable<Finding> Analyze(ProjectInfo project, AnalysisContext context)
     {
+        // In deep mode SemanticCodeAnalyzer reports System.Web usage by symbol (LMS110), so the namespace match is skipped.
+        var semanticSystemWeb = context.Deep?.GetCompilation(project) is not null;
         foreach (var file in project.SourceFiles)
         {
             string text;
@@ -25,17 +27,17 @@ public sealed class CodeAnalyzer : IProjectAnalyzer
                 continue;
             }
 
-            foreach (var finding in AnalyzeSource(text, project.Name, context.Relative(file), context))
+            foreach (var finding in AnalyzeSource(text, project.Name, context.Relative(file), context, semanticSystemWeb))
             {
                 yield return finding;
             }
         }
     }
 
-    internal static IEnumerable<Finding> AnalyzeSource(string source, string project, string file, AnalysisContext context)
+    internal static IEnumerable<Finding> AnalyzeSource(string source, string project, string file, AnalysisContext context, bool semanticSystemWeb = false)
     {
         var tree = CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.Latest));
-        var walker = new LegacyApiWalker();
+        var walker = new LegacyApiWalker(semanticSystemWeb ? SemanticCodeAnalyzer.SystemWebRule : null);
         walker.Visit(tree.GetRoot());
 
         return walker.Hits
@@ -51,7 +53,7 @@ public sealed class CodeAnalyzer : IProjectAnalyzer
         public SortedSet<string> Samples { get; } = new(StringComparer.Ordinal);
     }
 
-    private sealed class LegacyApiWalker : CSharpSyntaxWalker
+    private sealed class LegacyApiWalker(string? skippedRule) : CSharpSyntaxWalker
     {
         // Rules triggered by a using directive count once per file.
         private static readonly (string Prefix, string RuleId, bool ExactOrChild)[] NamespaceRules =
@@ -216,6 +218,11 @@ public sealed class CodeAnalyzer : IProjectAnalyzer
 
         private void Add(string ruleId, SyntaxNode node, string? sample = null)
         {
+            if (ruleId == skippedRule)
+            {
+                return;
+            }
+
             if (!Hits.TryGetValue(ruleId, out var hit))
             {
                 hit = new Hit();

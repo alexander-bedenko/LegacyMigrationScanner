@@ -37,7 +37,7 @@ public sealed class HtmlReportWriter : IReportWriter
         w.WriteLine("<header>");
         w.WriteLine($"<h1>Migration report: {E(r.Solution)}</h1>");
         w.WriteLine(string.Create(Inv,
-            $"<p class=\"muted\">Scanned {r.ScannedAt:yyyy-MM-dd HH:mm} with Legacy Migration Scanner {E(r.ToolVersion)} · estimate assumes {r.HoursPerPoint:0.##} h per point</p>"));
+            $"<p class=\"muted\">Scanned {r.ScannedAt:yyyy-MM-dd HH:mm} with Legacy Migration Scanner {E(r.ToolVersion)}{(r.Deep ? " · deep mode" : "")} · estimate assumes {r.HoursPerPoint:0.##} h per point</p>"));
         w.WriteLine("</header>");
 
         WriteTiles(r, w);

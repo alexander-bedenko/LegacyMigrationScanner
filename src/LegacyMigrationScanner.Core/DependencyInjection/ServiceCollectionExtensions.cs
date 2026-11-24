@@ -1,5 +1,6 @@
 using LegacyMigrationScanner.Core;
 using LegacyMigrationScanner.Core.Analyzers;
+using LegacyMigrationScanner.Core.Deep;
 using LegacyMigrationScanner.Core.Packages;
 using LegacyMigrationScanner.Core.Packages.Caching;
 using LegacyMigrationScanner.Core.Rules;
@@ -36,6 +37,9 @@ public static class ServiceCollectionExtensions
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IProjectAnalyzer, ConfigAnalyzer>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IProjectAnalyzer, CodeAnalyzer>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IProjectAnalyzer, PackageAnalyzer>());
+        // Deep-mode analyzers (ADR 0005) are no-ops unless the context carries compilations.
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IProjectAnalyzer, SemanticCodeAnalyzer>());
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IProjectAnalyzer, BinaryReferenceAnalyzer>());
 
         services.AddHttpClient(NuGetFeedClientFactory.HttpClientName, (sp, client) =>
         {
@@ -48,6 +52,8 @@ public static class ServiceCollectionExtensions
                 ? new NullPackageCache()
                 : ActivatorUtilities.CreateInstance<FilePackageCache>(sp));
         services.TryAddSingleton<IPackageCompatibilityService, PackageCompatibilityService>();
+        services.TryAddSingleton<IReferenceAssemblyProvider, NuGetReferenceAssemblyProvider>();
+        services.TryAddSingleton<IDeepModelBuilder, DeepModelBuilder>();
         services.TryAddSingleton<IMigrationScanner, MigrationScanner>();
 
         return services;

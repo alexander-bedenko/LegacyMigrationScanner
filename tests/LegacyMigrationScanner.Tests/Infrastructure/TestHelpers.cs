@@ -1,5 +1,7 @@
+using System.Reflection;
 using LegacyMigrationScanner.Core;
 using LegacyMigrationScanner.Core.Analyzers;
+using LegacyMigrationScanner.Core.Deep;
 using LegacyMigrationScanner.Core.Rules;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -27,14 +29,26 @@ internal static class TestHelpers
 
     public static RuleCatalog Rules { get; } = RuleCatalog.LoadDefault();
 
+    /// <summary>build/.NETFramework/v4.8 of the restored Microsoft.NETFramework.ReferenceAssemblies.net48 package.</summary>
+    public static string Net48ReferenceAssemblies { get; } = Path.Combine(
+        typeof(TestHelpers).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>().Single(a => a.Key == "Net48ReferenceAssemblies").Value
+            ?? throw new InvalidOperationException("Net48ReferenceAssemblies metadata missing (package not restored)."),
+        "build", ".NETFramework", "v4.8");
+
     public static string Join(IEnumerable<string> items) => string.Join(", ", items);
 
     public static AnalysisContext Context(string solutionDir = "/") => new(solutionDir, Rules);
 
     /// <summary>Builds the production DI graph; network goes to <paramref name="handler"/> when given.</summary>
-    public static ServiceProvider BuildServices(Action<ScannerOptions>? configure = null, HttpMessageHandler? handler = null, TimeProvider? time = null)
+    public static ServiceProvider BuildServices(
+        Action<ScannerOptions>? configure = null,
+        HttpMessageHandler? handler = null,
+        TimeProvider? time = null,
+        IReferenceAssemblyProvider? referenceAssemblies = null)
     {
         var services = new ServiceCollection();
+        // Deep mode uses the restored net48 reference assemblies: no downloads in tests.
+        services.AddSingleton(referenceAssemblies ?? new LocalReferenceAssemblyProvider(Net48ReferenceAssemblies));
         services.AddLogging(b => b.SetMinimumLevel(LogLevel.Warning));
         if (time is not null)
         {
@@ -63,4 +77,10 @@ internal static class TestHelpers
         Directory.CreateDirectory(path);
         return path;
     }
+}
+
+/// <summary>Serves one directory of reference assemblies for every .NET Framework version (or none).</summary>
+internal sealed class LocalReferenceAssemblyProvider(string? directory) : IReferenceAssemblyProvider
+{
+    public Task<string?> GetDirectoryAsync(string targetFrameworkVersion, CancellationToken cancellationToken) => Task.FromResult(directory);
 }

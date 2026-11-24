@@ -87,6 +87,9 @@
     { "id": "LMS305", "category": "Platform", "severity": "Critical", "basePoints": 5, "scaling": "Linear",
       "title": "COM+ / System.EnterpriseServices",
       "recommendation": "Not supported on modern .NET. Replace distributed transactions / serviced components with explicit transaction handling or messaging." },
+    { "id": "LMS310", "category": "Platform", "severity": "Warning", "basePoints": 1,
+      "title": "API not available on modern .NET (deep mode)",
+      "recommendation": "These .NET Framework types do not exist in modern .NET and have no dedicated rule. Check the API's replacement (docs: 'Breaking changes for migration from .NET Framework') or a compatibility package." },
     { "id": "LMS306", "category": "Configuration", "severity": "Info", "basePoints": 0.5,
       "title": "ConfigurationManager usage",
       "recommendation": "Works via the System.Configuration.ConfigurationManager package, but prefer IConfiguration / IOptions<T> with appsettings.json." },
@@ -125,6 +128,12 @@
       "recommendation": "Package runs on modern .NET but a newer recommended library exists; plan the replacement separately." },
     { "id": "LMS606", "category": "Package", "severity": "Warning", "basePoints": 2,
       "title": "Package not found on configured feeds",
-      "recommendation": "Usually an internal package: add its feed with --nuget-source, or plan to multi-target it (netstandard2.0;net48) before migrating consumers." }
+      "recommendation": "Usually an internal package: add its feed with --nuget-source, or plan to multi-target it (netstandard2.0;net48) before migrating consumers." },
+    { "id": "LMS607", "category": "Package", "severity": "Critical", "basePoints": 4, "scaling": "Linear",
+      "title": "Vendored DLL depends on .NET Framework-only assemblies (deep mode)",
+      "recommendation": "The binary references assemblies that do not exist on modern .NET (e.g. System.Web, System.ServiceModel server, Remoting). Get a modern build from the vendor, replace the library, or rebuild it from source." },
+    { "id": "LMS608", "category": "Package", "severity": "Warning", "basePoints": 1.5, "scaling": "Linear",
+      "title": "Vendored DLL built for .NET Framework (deep mode)",
+      "recommendation": "May load on modern .NET via the compatibility shim if it only uses APIs that still exist; verify with tests, and prefer a .NET Standard / modern build or a NuGet package." }
   ]
 }

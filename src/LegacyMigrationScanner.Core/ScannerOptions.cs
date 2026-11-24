@@ -32,6 +32,24 @@ public sealed class ScannerOptions
     /// <summary>Per-request timeout for feed calls.</summary>
     public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(15);
 
+    /// <summary>
+    /// Deep mode (ADR 0005): compile each C# project against .NET Framework reference assemblies and analyze symbols
+    /// and binary references. Default: syntax-only analysis (ADR 0001).
+    /// </summary>
+    public bool Deep { get; set; }
+
+    /// <summary>
+    /// Where downloaded .NET Framework reference assemblies are kept (immutable, never expire). Defaults to
+    /// <c>refasm</c> under <see cref="CacheDirectory"/> (or the default cache directory when caching is disabled).
+    /// </summary>
+    public string ReferenceAssembliesDirectory
+    {
+        get => _referenceAssembliesDirectory ?? Path.Combine(CacheDirectory ?? DefaultCacheDirectory, "refasm");
+        set => _referenceAssembliesDirectory = value;
+    }
+
+    private string? _referenceAssembliesDirectory;
+
     public IReadOnlyList<Uri> EffectiveNuGetSources => NuGetSources.Count > 0 ? [.. NuGetSources] : [NuGetOrgSource];
 
     public static string DefaultCacheDirectory =>

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Reflection;
 using LegacyMigrationScanner.Core.Analyzers;
 using LegacyMigrationScanner.Core.Baselines;
+using LegacyMigrationScanner.Core.Deep;
 using LegacyMigrationScanner.Core.Diagnostics;
 using LegacyMigrationScanner.Core.Estimation;
 using LegacyMigrationScanner.Core.Loading;
@@ -28,6 +29,7 @@ public sealed class MigrationScanner : IMigrationScanner
     private readonly RuleCatalog _rules;
     private readonly IReadOnlyList<IProjectAnalyzer> _analyzers;
     private readonly IPackageCompatibilityService _packages;
+    private readonly IDeepModelBuilder _deep;
     private readonly ScannerOptions _options;
     private readonly TimeProvider _time;
     private readonly ILogger<MigrationScanner> _logger;
@@ -36,6 +38,7 @@ public sealed class MigrationScanner : IMigrationScanner
         RuleCatalog rules,
         IEnumerable<IProjectAnalyzer> analyzers,
         IPackageCompatibilityService packages,
+        IDeepModelBuilder deep,
         IOptions<ScannerOptions> options,
         TimeProvider time,
         ILogger<MigrationScanner> logger)
@@ -44,6 +47,7 @@ public sealed class MigrationScanner : IMigrationScanner
         _rules = rules;
         _analyzers = [.. analyzers];
         _packages = packages;
+        _deep = deep;
         _options = options.Value;
         _time = time;
         _logger = logger;
@@ -73,7 +77,8 @@ public sealed class MigrationScanner : IMigrationScanner
             .ToList();
         var packages = await _packages.ResolveAsync(packageIdentities, cancellationToken);
 
-        var context = new AnalysisContext(solution.Directory, _rules, packages);
+        var deep = _options.Deep ? await _deep.BuildAsync(solution, cancellationToken) : null;
+        var context = new AnalysisContext(solution.Directory, _rules, packages, deep);
         var findings = new ConcurrentBag<Finding>();
         await Parallel.ForEachAsync(solution.Projects, cancellationToken, (project, ct) =>
         {
@@ -129,7 +134,8 @@ public sealed class MigrationScanner : IMigrationScanner
             Estimates = estimates,
             MigrationOrder = waves,
             HoursPerPoint = _options.HoursPerPoint,
-            Warnings = [.. solution.LoadErrors, .. orderWarnings],
+            Warnings = [.. solution.LoadErrors, .. orderWarnings, .. deep?.Warnings ?? []],
+            Deep = deep is not null,
             Packages = [.. packages.Values.OrderBy(p => p.Id, StringComparer.OrdinalIgnoreCase).ThenBy(p => p.Version, NuGetVersionComparer)],
             Rules = [.. _rules.All.OrderBy(r => r.Id, StringComparer.Ordinal)],
         };

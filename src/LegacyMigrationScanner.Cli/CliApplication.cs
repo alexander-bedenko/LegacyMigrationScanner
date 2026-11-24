@@ -118,6 +118,7 @@ internal static class CliApplication
         o.HoursPerPoint = options.HoursPerPoint;
         o.RulesOverridePath = options.RulesPath;
         o.Offline = options.Offline;
+        o.Deep = options.Deep;
         o.CacheDirectory = options.NoCache ? null : options.CacheDirectory ?? ScannerOptions.DefaultCacheDirectory;
         foreach (var source in options.NuGetSources)
         {

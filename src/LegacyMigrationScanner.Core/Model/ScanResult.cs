@@ -45,6 +45,8 @@ public sealed record ScanResult
     /// <summary>Migration waves: projects in the same wave do not depend on each other.</summary>
     public required IReadOnlyList<IReadOnlyList<string>> MigrationOrder { get; init; }
     public double HoursPerPoint { get; init; }
+    /// <summary>True when scanned in deep mode (ADR 0005): semantic analysis and binary references.</summary>
+    public bool Deep { get; init; }
     public IReadOnlyList<string> Warnings { get; init; } = [];
 
     /// <summary>Classification of every distinct package version referenced by the solution.</summary>

@@ -18,7 +18,8 @@ dotnet run --project src/LegacyMigrationScanner.Cli -- scan tests/Fixtures/Legac
 - Package versions only in `Directory.Packages.props` (CPM); no `Version=` in csproj.
 - Rules: metadata in `src/LegacyMigrationScanner.Core/Rules/rules.json`, detection in `Analyzers/`.
   Id ranges: LMS0xx project, 1xx System.Web, 2xx WCF, 3xx platform, 4xx data, 5xx config, 6xx packages.
-- Analyzers are syntax-only (ADR 0001), thread-safe, side-effect free. Package resolution: catalog → cache → NuGet V3 (ADR 0002).
+- Analyzers are syntax-only by default (ADR 0001), thread-safe, side-effect free; `--deep` (ADR 0005) adds a Roslyn
+  compilation per project via `AnalysisContext.Deep` (no MSBuild) — deep analyzers must be no-ops without it. Package resolution: catalog → cache → NuGet V3 (ADR 0002).
 - Logging via `[LoggerMessage]` in `Diagnostics/Log.cs` (stable event ids). Network in tests goes through `FakeNuGetFeed`.
 - Every change: tests + `CHANGELOG.md` (Unreleased). Small targeted changes over broad rewrites.
 - `tests/Fixtures/**` are scan targets (legacy code on purpose) — not part of the build; keep `EndToEndTests` in sync.
@@ -44,4 +45,6 @@ Design notes:
 Release checklist: move Unreleased → `## [X.Y.Z] - date` + link refs at the bottom of CHANGELOG, bump `<Version>` in
 `Directory.Build.props`, regenerate `docs/sample-report.md`, merge, then tag the merge commit.
 
-Next candidates (ROADMAP): 7 deep mode (MSBuildWorkspace; needs an ADR superseding 0001's scope).
+Stage 7 done (Unreleased): `--deep`, code in `Core/Deep/` + `SemanticCodeAnalyzer`/`BinaryReferenceAnalyzer`. Tests use
+the restored `Microsoft.NETFramework.ReferenceAssemblies.net48` package (`TestHelpers.Net48ReferenceAssemblies`), never
+the network. All ROADMAP stages are done; next ideas go to the ROADMAP backlog.
