@@ -21,7 +21,7 @@ public sealed record ReportOptions
 
 public static class ReportWriters
 {
-    public static IReadOnlyList<string> SupportedFormats { get; } = ["json", "md", "sarif"];
+    public static IReadOnlyList<string> SupportedFormats { get; } = ["json", "md", "sarif", "html"];
 
     public static IReportWriter? Create(string format, ReportOptions? options = null)
     {
@@ -30,6 +30,7 @@ public static class ReportWriters
         {
             "json" => new JsonReportWriter(),
             "md" or "markdown" => new MarkdownReportWriter(),
+            "html" => new HtmlReportWriter(),
             "sarif" => new SarifReportWriter(options?.SarifBaseDirectory ?? Environment.CurrentDirectory),
             _ => null,
         };

@@ -26,7 +26,7 @@ internal sealed class CliOptions
 
         Report options:
           -o, --output <dir>          Output directory (default: ./lms-report)
-          -f, --format <list>         Comma-separated: json, md, sarif (default: json,md)
+          -f, --format <list>         Comma-separated: json, md, sarif, html (default: json,md)
               --sarif-root <dir>      Base directory for SARIF paths, usually the repo root (default: current dir)
               --fail-on <severity>    Exit with code 2 if findings of this severity exist: critical | warning | info
 

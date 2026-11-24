@@ -39,7 +39,7 @@ lms scan <path> [options]
 | Option | Default | Description |
 |---|---|---|
 | `-o, --output <dir>` | `lms-report` | Output directory |
-| `-f, --format <list>` | `json,md` | `json`, `md`, `sarif` |
+| `-f, --format <list>` | `json,md` | `json`, `md`, `sarif`, `html` (single-file dashboard, no external requests) |
 | `--sarif-root <dir>` | current dir | Base for SARIF paths (repository root in CI) |
 | `--fail-on <severity>` | — | Exit code `2` if findings of `critical` / `warning` / `info` exist |
 | `--baseline <file>` | — | Previous JSON report: reports mark findings as new / unchanged / fixed |
