@@ -79,10 +79,10 @@ public sealed class CliTests : IDisposable
     [Fact]
     public async Task Scan_WritesAllRequestedReports()
     {
-        var (code, stdout, _) = await RunAsync("scan", TestHelpers.FixtureDir, "-o", _output, "-f", "json,md,sarif", "--offline");
+        var (code, stdout, _) = await RunAsync("scan", TestHelpers.FixtureDir, "-o", _output, "-f", "json,md,sarif,html", "--offline");
 
         Assert.Equal(0, code);
-        foreach (var ext in new[] { "json", "md", "sarif" })
+        foreach (var ext in new[] { "json", "md", "sarif", "html" })
         {
             Assert.True(File.Exists(Path.Combine(_output, $"LegacyShop.migration-report.{ext}")), ext);
         }

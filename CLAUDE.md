@@ -38,4 +38,7 @@ Stage 6 done (Unreleased): `--baseline` / `--fail-on-new`, code in `Core/Baselin
 Stage 4 done (Unreleased): `lms calibrate`, code in `Core/Calibration/` and `Cli/CalibrateCommand.cs`. Fits only
 `hoursPerPoint` (ratio of sums); per-rule fitting intentionally out of scope (ADR 0003).
 
-Next candidates (ROADMAP): 5b HTML dashboard, 7 deep mode, 8 MCP server.
+Stage 5b done (Unreleased): `-f html` → `Reporting/HtmlReportWriter.cs`, single file, inline CSS/JS, must stay
+free of external requests (tested).
+
+Next candidates (ROADMAP): 7 deep mode (MSBuildWorkspace), 8 MCP server.

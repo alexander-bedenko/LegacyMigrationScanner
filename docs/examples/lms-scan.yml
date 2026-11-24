@@ -15,8 +15,8 @@ jobs:
   scan:
     runs-on: ubuntu-latest   # no Visual Studio / .NET Framework needed
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
       - run: dotnet tool install -g LegacyMigrationScanner
@@ -24,7 +24,7 @@ jobs:
         # migration-baseline.json is a committed JSON report (see README, "Baseline"): PRs fail only on
         # findings they introduce. Drop --baseline/--fail-on-new to just report.
         run: >
-          lms scan src/MyLegacyApp.sln -o lms-report -f json,md,sarif --sarif-root "$GITHUB_WORKSPACE"
+          lms scan src/MyLegacyApp.sln -o lms-report -f json,md,sarif,html --sarif-root "$GITHUB_WORKSPACE"
           --baseline migration-baseline.json --fail-on-new --fail-on warning
       - uses: github/codeql-action/upload-sarif@v3
         if: always()
@@ -33,7 +33,7 @@ jobs:
           category: legacy-migration
       - run: cat lms-report/*.md >> "$GITHUB_STEP_SUMMARY"
         if: always()
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: migration-report
