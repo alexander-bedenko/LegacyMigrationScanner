@@ -5,6 +5,8 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-24
+
 ### Added
 - `lms mcp`: Model Context Protocol server over stdio (ADR 0004) for Claude Code, Claude Desktop, VS Code and other
   MCP clients. Read-only tools `scan_solution`, `get_findings`, `explain_finding`, `get_packages` with structured
@@ -67,5 +69,6 @@ versioning: [SemVer](https://semver.org/).
 - Effort model (log/linear scaling, P50/P90) and migration waves (topological order).
 - Synthetic .NET Framework 4.8 fixture solution and xUnit test suite.
 
-[Unreleased]: https://github.com/alexander-bedenko/LegacyMigrationScanner/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/alexander-bedenko/LegacyMigrationScanner/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/alexander-bedenko/LegacyMigrationScanner/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/alexander-bedenko/LegacyMigrationScanner/releases/tag/v0.3.0

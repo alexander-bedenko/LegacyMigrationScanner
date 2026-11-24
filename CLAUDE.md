@@ -23,10 +23,10 @@ dotnet run --project src/LegacyMigrationScanner.Cli -- scan tests/Fixtures/Legac
 - Every change: tests + `CHANGELOG.md` (Unreleased). Small targeted changes over broad rewrites.
 - `tests/Fixtures/**` are scan targets (legacy code on purpose) — not part of the build; keep `EndToEndTests` in sync.
 
-## State (0.3.0, 2026-11-24)
+## State (0.4.0, 2026-11-24)
 
-Done: stages 0–6 except 7–8 (see `docs/ROADMAP.md`): SARIF, DI/async pipeline, CI/CD, online packages,
-`lms calibrate` (stage 4), `-f html` (5b), `--baseline` / `--fail-on-new` (6).
+Done: all ROADMAP stages except 7 (see `docs/ROADMAP.md`): SARIF, DI/async pipeline, CI/CD, online packages,
+`lms calibrate` (4), `-f html` (5b), `--baseline` / `--fail-on-new` (6), `lms mcp` MCP server (8).
 Published: https://github.com/alexander-bedenko/LegacyMigrationScanner (public). Releases: push tag `vX.Y.Z` →
 `release.yml` builds, tests, packs, takes notes from the `## [X.Y.Z]` CHANGELOG section (fails without it) and creates a
 GitHub Release with the .nupkg files. `NUGET_API_KEY` secret is not set, so nothing is pushed to NuGet.org yet.
@@ -43,7 +43,5 @@ Design notes:
 
 Release checklist: move Unreleased → `## [X.Y.Z] - date` + link refs at the bottom of CHANGELOG, bump `<Version>` in
 `Directory.Build.props`, regenerate `docs/sample-report.md`, merge, then tag the merge commit.
-
-Stage 8 done (Unreleased): `lms mcp`.
 
 Next candidates (ROADMAP): 7 deep mode (MSBuildWorkspace; needs an ADR superseding 0001's scope).

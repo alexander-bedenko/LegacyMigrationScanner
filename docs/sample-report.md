@@ -1,6 +1,6 @@
 # Migration report: LegacyShop.sln
 
-Scanned 2026-11-24 09:53 with Legacy Migration Scanner 0.3.0. Estimate assumes 2 h per point.
+Scanned 2026-11-24 10:44 with Legacy Migration Scanner 0.4.0. Estimate assumes 2 h per point.
 
 ## Summary
 
