@@ -13,7 +13,7 @@
 | 5b. HTML | Однофайловый HTML-дашборд (`-f html`): плитки, effort-бары P50/P90, фильтр находок, baseline | ✅ 0.3.0 |
 | 6. Baseline | `--baseline <json>`: diff с прошлым прогоном по fingerprint, `--fail-on-new` для PR-гейтов | ✅ 0.3.0 |
 | 7. Глубокий режим | MSBuildWorkspace + семантическая модель; анализ бинарных ссылок (HintPath DLL) | ⏳ |
-| 8. AI-слой | `lms mcp`: MCP-сервер (stdio) с `scan_solution`, `get_findings`, `explain_finding`, `get_packages` и промптом `plan_migration` (LLM-план миграции) | ✅ Unreleased |
+| 8. AI-слой | `lms mcp`: MCP-сервер (stdio) с `scan_solution`, `get_findings`, `explain_finding`, `get_packages` и промптом `plan_migration` (LLM-план миграции) | ✅ 0.4.0 |
 
 ## Бэклог / известные ограничения
 
