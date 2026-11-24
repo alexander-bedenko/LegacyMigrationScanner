@@ -20,8 +20,8 @@ versioning: [SemVer](https://semver.org/).
   requests, light/dark by system setting.
 
 ### Changed
-- Dependencies: Microsoft.CodeAnalysis.CSharp 5.12.0, Microsoft.NET.Test.Sdk 18.12.0, xunit.runner.visualstudio 4.0.1,
-  coverlet.collector 10.1.1; GitHub Actions checkout v7, setup-dotnet v6, cache v6, upload-artifact v7.
+- Dependencies: Microsoft.CodeAnalysis.CSharp 5.12.0, Microsoft.Extensions.* 11.0.0, Microsoft.NET.Test.Sdk 18.12.0,
+  xunit.runner.visualstudio 4.0.1, coverlet.collector 10.1.1; GitHub Actions checkout v7, setup-dotnet v6, cache v6, upload-artifact v7.
 - Repository-local `nuget.config` (nuget.org only) for reproducible restore independent of machine-wide feeds.
 - Repository URLs point to `github.com/alexander-bedenko/LegacyMigrationScanner`.
 - Dropped the `Microsoft.SourceLink.GitHub` package (pulled vulnerable `Microsoft.Build.Tasks.Git` 8.0.0,
