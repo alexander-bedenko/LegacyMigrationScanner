@@ -9,6 +9,7 @@ internal enum CliCommand
 {
     Scan,
     Calibrate,
+    Mcp,
 }
 
 internal sealed class CliOptions
@@ -19,6 +20,7 @@ internal sealed class CliOptions
         Usage:
           lms scan <path> [options]
           lms calibrate <report.json>... (--actuals <file> | --actual-hours <n>) [-o <file>]
+          lms mcp [--root <dir>]... [package/estimation options]
           lms --version
 
         Arguments:
@@ -51,6 +53,10 @@ internal sealed class CliOptions
               --actual-hours <n>      Or: total actual hours for all given reports
           -o, --output <file>         Also write the calibration result as JSON
 
+        MCP server (stdio; for Claude Code, Claude Desktop, VS Code and other MCP clients):
+              --root <dir>            Directory the tools may read; repeatable (default: current directory)
+                                      Package and estimation options above apply too.
+
         General:
           -v, --verbosity <level>     quiet | minimal | normal | detailed (default: minimal)
           -h, --help                  Show help
@@ -62,6 +68,8 @@ internal sealed class CliOptions
     public CliCommand Command { get; private set; } = CliCommand.Scan;
     public string? Path { get; private set; }
     public IReadOnlyList<string> Reports => _reports;
+    /// <summary>mcp: directories the server may read (default: current directory).</summary>
+    public IReadOnlyList<string> McpRoots => _roots;
     public string? ActualsPath { get; private set; }
     public double? ActualHours { get; private set; }
     /// <summary>calibrate: optional JSON output file.</summary>
@@ -84,6 +92,7 @@ internal sealed class CliOptions
 
     private readonly List<Uri> _sources = [];
     private readonly List<string> _reports = [];
+    private readonly List<string> _roots = [];
 
     public static CliOptions Parse(string[] args)
     {
@@ -104,6 +113,11 @@ internal sealed class CliOptions
         if (args[0] == "calibrate")
         {
             return ParseCalibrate(args, options);
+        }
+
+        if (args[0] == "mcp")
+        {
+            return ParseMcp(args, options);
         }
 
         if (args[0] != "scan")
@@ -128,12 +142,6 @@ internal sealed class CliOptions
                 case "--sarif-root":
                     options.SarifBaseDirectory = Next(args, ref i, arg);
                     break;
-                case "--hours-per-point":
-                    options.HoursPerPoint = ParsePositiveDouble(Next(args, ref i, arg), arg);
-                    break;
-                case "--rules":
-                    options.RulesPath = Next(args, ref i, arg);
-                    break;
                 case "--fail-on":
                     var severity = Next(args, ref i, arg);
                     options.FailOn = Enum.TryParse<Severity>(severity, ignoreCase: true, out var s) && Enum.IsDefined(s)
@@ -146,25 +154,12 @@ internal sealed class CliOptions
                 case "--fail-on-new":
                     options.FailOnNew = true;
                     break;
-                case "--offline":
-                    options.Offline = true;
-                    break;
-                case "--nuget-source":
-                    var raw = Next(args, ref i, arg);
-                    options._sources.Add(Uri.TryCreate(raw, UriKind.Absolute, out var uri) && uri.Scheme is "https" or "http"
-                        ? uri
-                        : throw new ArgumentException($"Invalid --nuget-source '{raw}': expected an absolute http(s) URL of a V3 service index."));
-                    break;
-                case "--cache-dir":
-                    options.CacheDirectory = Next(args, ref i, arg);
-                    break;
-                case "--no-cache":
-                    options.NoCache = true;
-                    break;
-                case "-v" or "--verbosity":
-                    options.LogLevel = ParseVerbosity(Next(args, ref i, arg));
-                    break;
                 default:
+                    if (TryParseScannerOption(args, ref i, options))
+                    {
+                        break;
+                    }
+
                     if (arg.StartsWith('-'))
                     {
                         throw new ArgumentException($"Unknown option '{arg}'.");
@@ -188,6 +183,66 @@ internal sealed class CliOptions
         if (options.FailOnNew && options.BaselinePath is null && !options.ShowHelp)
         {
             throw new ArgumentException("--fail-on-new requires --baseline <file>.");
+        }
+
+        return options;
+    }
+
+    /// <summary>Options shared by scan and mcp: estimation, package resolution and logging.</summary>
+    private static bool TryParseScannerOption(string[] args, ref int i, CliOptions options)
+    {
+        var arg = args[i];
+        switch (arg)
+        {
+            case "--hours-per-point":
+                options.HoursPerPoint = ParsePositiveDouble(Next(args, ref i, arg), arg);
+                return true;
+            case "--rules":
+                options.RulesPath = Next(args, ref i, arg);
+                return true;
+            case "--offline":
+                options.Offline = true;
+                return true;
+            case "--nuget-source":
+                var raw = Next(args, ref i, arg);
+                options._sources.Add(Uri.TryCreate(raw, UriKind.Absolute, out var uri) && uri.Scheme is "https" or "http"
+                    ? uri
+                    : throw new ArgumentException($"Invalid --nuget-source '{raw}': expected an absolute http(s) URL of a V3 service index."));
+                return true;
+            case "--cache-dir":
+                options.CacheDirectory = Next(args, ref i, arg);
+                return true;
+            case "--no-cache":
+                options.NoCache = true;
+                return true;
+            case "-v" or "--verbosity":
+                options.LogLevel = ParseVerbosity(Next(args, ref i, arg));
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private static CliOptions ParseMcp(string[] args, CliOptions options)
+    {
+        options.Command = CliCommand.Mcp;
+        for (var i = 1; i < args.Length; i++)
+        {
+            var arg = args[i];
+            if (arg is "-h" or "--help")
+            {
+                options.ShowHelp = true;
+                return options;
+            }
+
+            if (arg == "--root")
+            {
+                options._roots.Add(Next(args, ref i, arg));
+            }
+            else if (!TryParseScannerOption(args, ref i, options))
+            {
+                throw new ArgumentException($"Unknown option '{arg}' for mcp.");
+            }
         }
 
         return options;

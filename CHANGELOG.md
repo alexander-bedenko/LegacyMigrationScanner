@@ -5,6 +5,13 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- `lms mcp`: Model Context Protocol server over stdio (ADR 0004) for Claude Code, Claude Desktop, VS Code and other
+  MCP clients. Read-only tools `scan_solution`, `get_findings`, `explain_finding`, `get_packages` with structured
+  output, and the `plan_migration` prompt for an LLM-written phased migration plan. Scan results are cached per
+  session; tools only read inside allowed roots (working directory or `--root <dir>`); logs go to stderr.
+- `LegacyMigrationScanner.Mcp` library (`IMcpServerBuilder.WithLegacyMigrationScanner()`) to host the tools elsewhere.
+
 ## [0.3.0] - 2026-11-24
 
 ### Added

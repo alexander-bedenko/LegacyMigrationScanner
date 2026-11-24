@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>LegacyMigrationScanner.Mcp</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackageId>LegacyMigrationScanner.Mcp</PackageId>
+    <Description>Model Context Protocol tools and prompts for Legacy Migration Scanner (hosted by `lms mcp`).</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LegacyMigrationScanner.Core\LegacyMigrationScanner.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="LegacyMigrationScanner.Tests" />
+  </ItemGroup>
+</Project>

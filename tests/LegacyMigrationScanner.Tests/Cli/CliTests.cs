@@ -54,6 +54,8 @@ public sealed class CliTests : IDisposable
     [InlineData("scan a.sln --fail-on-new")]
     [InlineData("scan a.sln --baseline")]
     [InlineData("deploy")]
+    [InlineData("mcp --format json")]
+    [InlineData("mcp --root")]
     [InlineData("calibrate")]
     [InlineData("calibrate r.json")]
     [InlineData("calibrate r.json --actuals a.csv --actual-hours 10")]
@@ -96,6 +98,27 @@ public sealed class CliTests : IDisposable
         var (code, _, _) = await RunAsync("scan", TestHelpers.FixtureSolution, "-o", _output, "-f", "json", "--offline", "--fail-on", "critical");
 
         Assert.Equal(2, code);
+    }
+
+    [Fact]
+    public void Parse_Mcp_ReadsRootsAndScannerOptions()
+    {
+        var o = CliOptions.Parse(["mcp", "--root", "a", "--root", "b", "--offline", "--hours-per-point", "3", "-v", "normal"]);
+
+        Assert.Equal(CliCommand.Mcp, o.Command);
+        Assert.Equal("a, b", TestHelpers.Join(o.McpRoots));
+        Assert.True(o.Offline);
+        Assert.Equal(3, o.HoursPerPoint);
+        Assert.Equal(LogLevel.Information, o.LogLevel);
+    }
+
+    [Fact]
+    public async Task Mcp_MissingRoot_ReturnsInvalidArguments()
+    {
+        var (code, _, stderr) = await RunAsync("mcp", "--root", Path.Combine(_output, "nope"));
+
+        Assert.Equal(64, code);
+        Assert.Contains("--root directory not found", stderr);
     }
 
     [Fact]

@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\LegacyMigrationScanner.Core\LegacyMigrationScanner.Core.csproj" />
     <ProjectReference Include="..\..\src\LegacyMigrationScanner.Cli\LegacyMigrationScanner.Cli.csproj" />
+    <ProjectReference Include="..\..\src\LegacyMigrationScanner.Mcp\LegacyMigrationScanner.Mcp.csproj" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

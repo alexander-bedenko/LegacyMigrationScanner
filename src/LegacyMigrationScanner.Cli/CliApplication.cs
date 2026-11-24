@@ -48,6 +48,11 @@ internal static class CliApplication
             return await CalibrateCommand.RunAsync(options, stdout, stderr, cancellationToken);
         }
 
+        if (options.Command == CliCommand.Mcp)
+        {
+            return await McpCommand.RunAsync(options, stderr, cancellationToken);
+        }
+
         var services = new ServiceCollection();
         services.AddLogging(logging =>
         {
@@ -61,17 +66,7 @@ internal static class CliApplication
             // Logs go to stderr so stdout stays machine-friendly.
             logging.AddConsole(console => console.LogToStandardErrorThreshold = LogLevel.Trace);
         });
-        services.AddLegacyMigrationScanner(o =>
-        {
-            o.HoursPerPoint = options.HoursPerPoint;
-            o.RulesOverridePath = options.RulesPath;
-            o.Offline = options.Offline;
-            o.CacheDirectory = options.NoCache ? null : options.CacheDirectory ?? ScannerOptions.DefaultCacheDirectory;
-            foreach (var source in options.NuGetSources)
-            {
-                o.NuGetSources.Add(source);
-            }
-        });
+        services.AddLegacyMigrationScanner(o => ConfigureScanner(o, options));
         configureServices?.Invoke(services);
 
         await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true });
@@ -114,6 +109,19 @@ internal static class CliApplication
         {
             await stderr.WriteLineAsync($"error: {ex.Message}");
             return ExitCodes.ScanFailed;
+        }
+    }
+
+    /// <summary>Scanner settings shared by scan and mcp.</summary>
+    internal static void ConfigureScanner(ScannerOptions o, CliOptions options)
+    {
+        o.HoursPerPoint = options.HoursPerPoint;
+        o.RulesOverridePath = options.RulesPath;
+        o.Offline = options.Offline;
+        o.CacheDirectory = options.NoCache ? null : options.CacheDirectory ?? ScannerOptions.DefaultCacheDirectory;
+        foreach (var source in options.NuGetSources)
+        {
+            o.NuGetSources.Add(source);
         }
     }
 

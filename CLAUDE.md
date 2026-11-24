@@ -37,8 +37,13 @@ Design notes:
   keep `lmsFindingHash/v1` inputs stable (bump to v2 if they must change).
 - `lms calibrate` fits only `hoursPerPoint` (ratio of sums); per-rule fitting intentionally out of scope (ADR 0003).
 - `HtmlReportWriter` output must stay a single file free of external requests (tested).
+- MCP (ADR 0004): tools in `src/LegacyMigrationScanner.Mcp` (read-only, structured content, errors as `McpException`),
+  hosted by `lms mcp` (`Cli/McpCommand.cs`). Stdout is the protocol — never write to Console.Out in that path.
+  Every path argument goes through `PathGuard`. `McpProtocolTests` runs the real `lms.dll mcp` over stdio.
 
 Release checklist: move Unreleased → `## [X.Y.Z] - date` + link refs at the bottom of CHANGELOG, bump `<Version>` in
 `Directory.Build.props`, regenerate `docs/sample-report.md`, merge, then tag the merge commit.
 
-Next candidates (ROADMAP): 8 MCP server (AI layer), 7 deep mode (MSBuildWorkspace; needs an ADR superseding 0001's scope).
+Stage 8 done (Unreleased): `lms mcp`.
+
+Next candidates (ROADMAP): 7 deep mode (MSBuildWorkspace; needs an ADR superseding 0001's scope).

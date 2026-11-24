@@ -105,6 +105,35 @@ Ready-to-copy workflow with SARIF upload: [`docs/examples/lms-scan.yml`](docs/ex
 
 Full catalog: [`rules.json`](src/LegacyMigrationScanner.Core/Rules/rules.json).
 
+## Use with AI assistants (MCP)
+
+`lms mcp` runs a [Model Context Protocol](https://modelcontextprotocol.io) server over stdio, so Claude Code,
+Claude Desktop, VS Code and other MCP clients can scan solutions and reason about the results.
+
+```bash
+claude mcp add lms -- lms mcp                      # Claude Code, run in the repository root
+claude mcp add lms -- lms mcp --root D:/src/legacy --offline
+```
+
+Claude Desktop / other clients (`mcpServers` config):
+
+```json
+{ "mcpServers": { "lms": { "command": "lms", "args": ["mcp", "--root", "D:/src/legacy"] } } }
+```
+
+| Tool / prompt | What it returns |
+|---|---|
+| `scan_solution` | Per-project readiness and P50/P90 hours, migration waves, top rules, packages needing action (cached per session; `refresh` re-scans) |
+| `get_findings` | Findings, most severe first; filters: project, minimum severity, rule, category; paging |
+| `explain_finding` | One finding by fingerprint: rule, recommendation, effort formula and points, project context |
+| `get_packages` | Package status (upgrade / replace / remove / incompatible / not found) with target version or replacement |
+| `plan_migration` (prompt) | Asks the assistant to build a phased migration plan from the tools' output (engineering or management audience) |
+
+All tools are read-only. They only read inside the allowed roots: the server's working directory by default, or the
+`--root <dir>` options (repeatable). The package and estimation options of `scan` (`--offline`, `--nuget-source`,
+`--hours-per-point`, `--rules`, cache options) apply too. Logs go to stderr; stdout is the protocol. See
+[ADR 0004](docs/adr/0004-mcp-server.md).
+
 ## Using the engine as a library
 
 ```csharp
@@ -129,9 +158,10 @@ src/LegacyMigrationScanner.Core
   Packages/      catalog, NuGet V3 client, compatibility service, file cache
   Rules/         rule catalog (embedded JSON) + overrides
   Estimation/    effort model, migration waves
-  Reporting/     JSON, Markdown, SARIF
+  Reporting/     JSON, Markdown, SARIF, HTML
   DependencyInjection/  AddLegacyMigrationScanner()
-src/LegacyMigrationScanner.Cli   `lms` composition root
+src/LegacyMigrationScanner.Mcp   MCP tools, prompt, session cache, path guard (`lms mcp`)
+src/LegacyMigrationScanner.Cli   `lms` composition root (scan, calibrate, mcp)
 tests/                           xUnit (unit, end-to-end, CLI) + Fixtures/LegacyShop
 ```
 
