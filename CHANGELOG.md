@@ -5,6 +5,10 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Releases publish to NuGet.org via Trusted Publishing (GitHub OIDC → 1-hour API key; no stored secret). The
+  workflow can be re-run for an existing tag (`workflow_dispatch`), replacing that GitHub release's assets.
+
 ## [0.5.0] - 2026-11-24
 
 ### Added
