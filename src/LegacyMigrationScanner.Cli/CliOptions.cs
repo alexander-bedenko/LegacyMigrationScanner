@@ -23,6 +23,11 @@ internal sealed class CliOptions
               --sarif-root <dir>      Base directory for SARIF paths, usually the repo root (default: current dir)
               --fail-on <severity>    Exit with code 2 if findings of this severity exist: critical | warning | info
 
+        Baseline options:
+              --baseline <file>       Previous JSON report (-f json); reports mark findings as new/unchanged/fixed
+              --fail-on-new           Exit with code 2 if there are new findings vs --baseline
+                                      (combined with --fail-on: only new findings of that severity or higher)
+
         Estimation options:
               --hours-per-point <n>   Hours per effort point (default: 2)
               --rules <file>          JSON file overriding rule points/severity (calibration)
@@ -38,7 +43,7 @@ internal sealed class CliOptions
           -h, --help                  Show help
               --version               Show version
 
-        Exit codes: 0 success, 1 scan failed, 2 --fail-on threshold exceeded, 64 invalid arguments, 130 cancelled.
+        Exit codes: 0 success, 1 scan failed, 2 --fail-on/--fail-on-new threshold exceeded, 64 invalid arguments, 130 cancelled.
         """;
 
     public string? Path { get; private set; }
@@ -48,6 +53,8 @@ internal sealed class CliOptions
     public double HoursPerPoint { get; private set; } = 2;
     public string? RulesPath { get; private set; }
     public Severity? FailOn { get; private set; }
+    public string? BaselinePath { get; private set; }
+    public bool FailOnNew { get; private set; }
     public bool Offline { get; private set; }
     public IReadOnlyList<Uri> NuGetSources => _sources;
     public string? CacheDirectory { get; private set; }
@@ -108,6 +115,12 @@ internal sealed class CliOptions
                         ? s
                         : throw new ArgumentException($"Invalid --fail-on value '{severity}'.");
                     break;
+                case "--baseline":
+                    options.BaselinePath = Next(args, ref i, arg);
+                    break;
+                case "--fail-on-new":
+                    options.FailOnNew = true;
+                    break;
                 case "--offline":
                     options.Offline = true;
                     break;
@@ -145,6 +158,11 @@ internal sealed class CliOptions
         if (options.Path is null && !options.ShowHelp)
         {
             throw new ArgumentException("Missing <path> to a solution or project.");
+        }
+
+        if (options.FailOnNew && options.BaselinePath is null && !options.ShowHelp)
+        {
+            throw new ArgumentException("--fail-on-new requires --baseline <file>.");
         }
 
         return options;

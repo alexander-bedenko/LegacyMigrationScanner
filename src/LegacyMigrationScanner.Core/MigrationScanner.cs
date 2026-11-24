@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Reflection;
 using LegacyMigrationScanner.Core.Analyzers;
+using LegacyMigrationScanner.Core.Baselines;
 using LegacyMigrationScanner.Core.Diagnostics;
 using LegacyMigrationScanner.Core.Estimation;
 using LegacyMigrationScanner.Core.Loading;
@@ -86,7 +87,17 @@ public sealed class MigrationScanner : IMigrationScanner
             return ValueTask.CompletedTask;
         });
 
+        var projectPaths = solution.Projects
+            .GroupBy(p => p.Name, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => context.Relative(g.First().FullPath), StringComparer.Ordinal);
+        var solutionFile = Path.GetFileName(solution.FullPath);
+
         var ordered = findings
+            .Select(f => f with
+            {
+                Fingerprint = FindingFingerprint.Compute(
+                    f.RuleId, f.Project, f.File ?? projectPaths.GetValueOrDefault(f.Project) ?? solutionFile, f.Detail),
+            })
             .OrderBy(f => f.Project, StringComparer.OrdinalIgnoreCase)
             .ThenByDescending(f => f.Severity)
             .ThenBy(f => f.RuleId, StringComparer.Ordinal)
@@ -103,7 +114,7 @@ public sealed class MigrationScanner : IMigrationScanner
         {
             ToolVersion = ToolVersion,
             ScannedAt = _time.GetLocalNow(),
-            Solution = Path.GetFileName(solution.FullPath),
+            Solution = solutionFile,
             SolutionDirectory = solution.Directory,
             Projects = [.. solution.Projects.Select(p => new ProjectSummary(
                 p.Name,

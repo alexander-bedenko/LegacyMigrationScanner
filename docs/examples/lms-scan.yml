@@ -21,14 +21,20 @@ jobs:
           dotnet-version: '10.0.x'
       - run: dotnet tool install -g LegacyMigrationScanner
       - name: Scan
-        run: lms scan src/MyLegacyApp.sln -o lms-report -f json,md,sarif --sarif-root "$GITHUB_WORKSPACE"
-        # Add --fail-on critical to block PRs that introduce new blockers (combine with a baseline).
+        # migration-baseline.json is a committed JSON report (see README, "Baseline"): PRs fail only on
+        # findings they introduce. Drop --baseline/--fail-on-new to just report.
+        run: >
+          lms scan src/MyLegacyApp.sln -o lms-report -f json,md,sarif --sarif-root "$GITHUB_WORKSPACE"
+          --baseline migration-baseline.json --fail-on-new --fail-on warning
       - uses: github/codeql-action/upload-sarif@v3
+        if: always()
         with:
           sarif_file: lms-report/MyLegacyApp.migration-report.sarif
           category: legacy-migration
       - run: cat lms-report/*.md >> "$GITHUB_STEP_SUMMARY"
+        if: always()
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: migration-report
           path: lms-report

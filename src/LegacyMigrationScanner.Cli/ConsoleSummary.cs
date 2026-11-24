@@ -13,6 +13,12 @@ internal static class ConsoleSummary
         output.WriteLine();
         output.WriteLine(string.Create(inv, $"{result.Solution}: {result.Projects.Count} projects, {result.Findings.Count} findings ({critical} critical)"));
         output.WriteLine(string.Create(inv, $"Estimated effort: P50 {result.TotalHoursP50:0} h, P90 {result.TotalHoursP90:0} h"));
+        if (result.Baseline is { } b)
+        {
+            var newCritical = b.New.Count(f => f.Severity == Severity.Critical);
+            output.WriteLine(string.Create(inv,
+                $"Baseline: {b.New.Count} new ({newCritical} critical), {b.Fixed.Count} fixed, {b.Unchanged} unchanged vs {b.BaselinePath}"));
+        }
         output.WriteLine();
 
         var nameWidth = Math.Max(7, result.Estimates.Select(e => e.Project.Length).DefaultIfEmpty(7).Max());

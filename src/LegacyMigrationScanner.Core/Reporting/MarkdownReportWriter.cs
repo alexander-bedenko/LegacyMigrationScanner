@@ -32,6 +32,8 @@ public sealed class MarkdownReportWriter : IReportWriter
         w.WriteLine($"| Estimated effort, P90 | {r.TotalHoursP90.ToString("0", inv)} h (~{(r.TotalHoursP90 / 8).ToString("0.#", inv)} person-days) |");
         w.WriteLine();
 
+        WriteBaseline(r, w);
+
         if (r.Warnings.Count > 0)
         {
             w.WriteLine("> **Scanner warnings**");
@@ -95,7 +97,7 @@ public sealed class MarkdownReportWriter : IReportWriter
             {
                 var location = f.File is null ? "" : f.Line is null ? f.File : $"{f.File}:{f.Line}";
                 var recommendation = f.Category == FindingCategory.Package ? f.Recommendation : "";
-                w.WriteLine($"| {f.Severity} | {f.RuleId} {Escape(f.Title)} | `{location}` | {f.Count} | {Escape(f.Detail)} | {Escape(recommendation)} |");
+                w.WriteLine($"| {f.Severity} | {f.RuleId} {Escape(f.Title)} | {Code(location)} | {f.Count} | {Escape(f.Detail)} | {Escape(recommendation)} |");
             }
         }
 
@@ -106,6 +108,50 @@ public sealed class MarkdownReportWriter : IReportWriter
         {
             w.WriteLine();
             w.WriteLine($"No issues found in: {string.Join(", ", clean.Select(Escape))}.");
+        }
+    }
+
+    private static void WriteBaseline(ScanResult r, TextWriter w)
+    {
+        if (r.Baseline is not { } b)
+        {
+            return;
+        }
+
+        w.WriteLine("## Changes since baseline");
+        w.WriteLine();
+        var version = b.BaselineToolVersion is null ? "" : $", scanner {b.BaselineToolVersion}";
+        w.WriteLine($"Compared with `{Escape(b.BaselinePath)}` ({b.BaselineFindingCount} findings{version}): " +
+                    $"**{b.New.Count} new**, {b.Fixed.Count} fixed, {b.Unchanged} unchanged.");
+        w.WriteLine();
+
+        if (b.New.Count > 0)
+        {
+            w.WriteLine("### New findings");
+            w.WriteLine();
+            w.WriteLine("| Severity | Rule | Project | Location | Detail |");
+            w.WriteLine("|---|---|---|---|---|");
+            foreach (var f in b.New)
+            {
+                var location = f.File is null ? "" : f.Line is null ? f.File : $"{f.File}:{f.Line}";
+                w.WriteLine($"| {f.Severity} | {f.RuleId} {Escape(f.Title)} | {Escape(f.Project)} | {Code(location)} | {Escape(f.Detail)} |");
+            }
+
+            w.WriteLine();
+        }
+
+        if (b.Fixed.Count > 0)
+        {
+            w.WriteLine("### Fixed since baseline");
+            w.WriteLine();
+            w.WriteLine("| Severity | Rule | Project | Location | Detail |");
+            w.WriteLine("|---|---|---|---|---|");
+            foreach (var f in b.Fixed)
+            {
+                w.WriteLine($"| {f.Severity} | {f.RuleId} {Escape(f.Title)} | {Escape(f.Project)} | {Code(f.File)} | {Escape(f.Detail)} |");
+            }
+
+            w.WriteLine();
         }
     }
 
@@ -139,6 +185,9 @@ public sealed class MarkdownReportWriter : IReportWriter
         "Yellow" => "🟡 Yellow",
         _ => "🟢 Green",
     };
+
+    /// <summary>Inline code span; empty for missing values (an empty span renders as literal backticks).</summary>
+    private static string Code(string? text) => string.IsNullOrEmpty(text) ? "" : $"`{Escape(text)}`";
 
     private static string Escape(string? text)
     {

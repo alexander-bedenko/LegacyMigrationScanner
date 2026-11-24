@@ -29,8 +29,10 @@ Done: stages 0–3, SARIF, DI/async pipeline, CI/CD. See `docs/ROADMAP.md`.
 Real-package build verified locally: build, 117 tests, format, sample scan all green. Repo-local `nuget.config`
 pins nuget.org (the machine-wide config has a corporate feed that hangs restore).
 
-Pending housekeeping:
-- `.github/` restored, repo URLs use `alexander-bedenko`, local git repo initialized (branch `main`).
-- Remaining: create the GitHub repo `alexander-bedenko/LegacyMigrationScanner` and push (needs `gh auth login` by Alex).
+Published: https://github.com/alexander-bedenko/LegacyMigrationScanner (public, `main`); first CI run green
+on Linux + Windows incl. pack/smoke test. `NUGET_API_KEY` secret not set yet (release skips NuGet push).
 
-Next: stage 6 — `--baseline <report.json>` + `--fail-on-new` (diff by SARIF fingerprint `lmsFindingHash/v1`).
+Stage 6 done (Unreleased): `--baseline` / `--fail-on-new`, code in `Core/Baselines/`; `Finding.Fingerprint` is set by
+`MigrationScanner` and reused by SARIF — keep `FindingFingerprint` v1 inputs stable (bump to v2 if they must change).
+
+Next candidates (ROADMAP): stage 4 `lms calibrate`, 5b HTML dashboard, 7 deep mode, 8 MCP server.
