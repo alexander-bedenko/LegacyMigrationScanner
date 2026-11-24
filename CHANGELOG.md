@@ -5,6 +5,8 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-24
+
 ### Added
 - Deep mode `--deep` (scan and mcp, ADR 0005): compiles each .NET Framework project with Roslyn without MSBuild —
   Compile items, official .NET Framework reference assemblies (downloaded once from the NuGet feed into
@@ -79,6 +81,7 @@ versioning: [SemVer](https://semver.org/).
 - Effort model (log/linear scaling, P50/P90) and migration waves (topological order).
 - Synthetic .NET Framework 4.8 fixture solution and xUnit test suite.
 
-[Unreleased]: https://github.com/alexander-bedenko/LegacyMigrationScanner/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/alexander-bedenko/LegacyMigrationScanner/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/alexander-bedenko/LegacyMigrationScanner/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/alexander-bedenko/LegacyMigrationScanner/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/alexander-bedenko/LegacyMigrationScanner/releases/tag/v0.3.0

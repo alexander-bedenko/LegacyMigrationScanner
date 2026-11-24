@@ -12,7 +12,7 @@
 | 4. Калибровка | Команда `lms calibrate`: подбор hoursPerPoint по фактическим часам прошлой миграции | ✅ 0.3.0 |
 | 5b. HTML | Однофайловый HTML-дашборд (`-f html`): плитки, effort-бары P50/P90, фильтр находок, baseline | ✅ 0.3.0 |
 | 6. Baseline | `--baseline <json>`: diff с прошлым прогоном по fingerprint, `--fail-on-new` для PR-гейтов | ✅ 0.3.0 |
-| 7. Глубокий режим | `--deep`: семантическая модель без MSBuild (Roslyn + reference assemblies .NET Framework с NuGet), LMS310; анализ vendored DLL по HintPath (LMS607/608) — ADR 0005 | ✅ Unreleased |
+| 7. Глубокий режим | `--deep`: семантическая модель без MSBuild (Roslyn + reference assemblies .NET Framework с NuGet), LMS310; анализ vendored DLL по HintPath (LMS607/608) — ADR 0005 | ✅ 0.5.0 |
 | 8. AI-слой | `lms mcp`: MCP-сервер (stdio) с `scan_solution`, `get_findings`, `explain_finding`, `get_packages` и промптом `plan_migration` (LLM-план миграции) | ✅ 0.4.0 |
 
 ## Бэклог / известные ограничения
