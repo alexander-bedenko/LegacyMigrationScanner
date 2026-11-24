@@ -24,10 +24,10 @@ dotnet run --project src/LegacyMigrationScanner.Cli -- scan tests/Fixtures/Legac
 - Every change: tests + `CHANGELOG.md` (Unreleased). Small targeted changes over broad rewrites.
 - `tests/Fixtures/**` are scan targets (legacy code on purpose) — not part of the build; keep `EndToEndTests` in sync.
 
-## State (0.4.0, 2026-11-24)
+## State (0.5.0, 2026-11-24)
 
-Done: all ROADMAP stages except 7 (see `docs/ROADMAP.md`): SARIF, DI/async pipeline, CI/CD, online packages,
-`lms calibrate` (4), `-f html` (5b), `--baseline` / `--fail-on-new` (6), `lms mcp` MCP server (8).
+Done: all ROADMAP stages (see `docs/ROADMAP.md`): SARIF, DI/async pipeline, CI/CD, online packages,
+`lms calibrate` (4), `-f html` (5b), `--baseline` / `--fail-on-new` (6), `--deep` (7), `lms mcp` MCP server (8).
 Published: https://github.com/alexander-bedenko/LegacyMigrationScanner (public). Releases: push tag `vX.Y.Z` →
 `release.yml` builds, tests, packs, takes notes from the `## [X.Y.Z]` CHANGELOG section (fails without it) and creates a
 GitHub Release with the .nupkg files. `NUGET_API_KEY` secret is not set, so nothing is pushed to NuGet.org yet.
@@ -45,6 +45,6 @@ Design notes:
 Release checklist: move Unreleased → `## [X.Y.Z] - date` + link refs at the bottom of CHANGELOG, bump `<Version>` in
 `Directory.Build.props`, regenerate `docs/sample-report.md`, merge, then tag the merge commit.
 
-Stage 7 done (Unreleased): `--deep`, code in `Core/Deep/` + `SemanticCodeAnalyzer`/`BinaryReferenceAnalyzer`. Tests use
+Deep mode (stage 7): code in `Core/Deep/` + `SemanticCodeAnalyzer`/`BinaryReferenceAnalyzer`. Tests use
 the restored `Microsoft.NETFramework.ReferenceAssemblies.net48` package (`TestHelpers.Net48ReferenceAssemblies`), never
 the network. All ROADMAP stages are done; next ideas go to the ROADMAP backlog.

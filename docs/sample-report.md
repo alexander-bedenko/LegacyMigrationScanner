@@ -1,22 +1,22 @@
 # Migration report: LegacyShop.sln
 
-Scanned 2026-11-24 10:44 with Legacy Migration Scanner 0.4.0. Estimate assumes 2 h per point.
+Scanned 2026-11-24 11:15 with Legacy Migration Scanner 0.5.0. Estimate assumes 2 h per point.
 
 ## Summary
 
 | Metric | Value |
 |---|---|
 | Projects | 4 |
-| Findings (critical / warning / info) | 17 / 29 / 12 |
-| Estimated effort, P50 | 223 h (~27.9 person-days) |
-| Estimated effort, P90 | 381 h (~47.6 person-days) |
+| Findings (critical / warning / info) | 17 / 30 / 12 |
+| Estimated effort, P50 | 224 h (~28 person-days) |
+| Estimated effort, P90 | 383 h (~47.9 person-days) |
 
 ## Projects
 
 | Project | Kind | Format | Target | LOC | Readiness | P50, h | P90, h | Top cost drivers |
 |---|---|---|---|---:|---|---:|---:|---|
 | LegacyShop.Web | AspNetWebApplication | Legacy | v4.8 | 95 | 🔴 Red | 116 | 185 | LMS004 (8), LMS600 (7), LMS113 (6) |
-| LegacyShop.Data | ClassLibrary | Legacy | v4.8 | 55 | 🔴 Red | 55 | 95 | LMS400 (8), LMS302 (7.8), LMS402 (2) |
+| LegacyShop.Data | ClassLibrary | Legacy | v4.8 | 71 | 🔴 Red | 56 | 97 | LMS400 (8), LMS302 (7.8), LMS402 (2) |
 | LegacyShop.Services | WcfService | Legacy | v4.8 | 57 | 🔴 Red | 52 | 101 | LMS210 (6), LMS005 (5), LMS301 (5) |
 | LegacyShop.Common | ClassLibrary | SDK | netstandard2.0 | 9 | 🟢 Green | 0 | 0 |  |
 
@@ -50,7 +50,7 @@ Projects in the same wave do not depend on each other and can be migrated in par
 | LMS102 | Warning | HTTP modules (IHttpModule) | 1 | 1 | Rewrite as ASP.NET Core middleware. |
 | LMS103 | Warning | HTTP handlers (IHttpHandler / .ashx) | 1 | 1 | Rewrite as minimal API endpoints or middleware. |
 | LMS104 | Warning | ASP.NET session state | 1 | 1 | Use ASP.NET Core ISession (async, byte[]/string only, requires explicit serialization) backed by a distributed cache; review what is stored in session. |
-| LMS110 | Warning | Dependency on System.Web namespace | 2 | 4 | Replace System.Web types with ASP.NET Core equivalents (Microsoft.AspNetCore.Http). Note: System.Web.HttpUtility is still available on modern .NET. |
+| LMS110 | Warning | Dependency on System.Web namespace | 3 | 5 | Replace System.Web types with ASP.NET Core equivalents (Microsoft.AspNetCore.Http). Note: System.Web.HttpUtility is still available on modern .NET. |
 | LMS114 | Warning | OWIN / Katana pipeline | 1 | 2 | Replace OWIN middleware and Startup with the ASP.NET Core pipeline; Microsoft.Owin.Security.* -> ASP.NET Core authentication handlers. |
 | LMS202 | Warning | WCF client configuration (system.serviceModel/client) | 1 | 1 | Modern .NET WCF client (System.ServiceModel.Http/NetTcp packages) does not read config files: move endpoints/bindings to code and appsettings.json. |
 | LMS211 | Warning | WCF client proxies (ClientBase<T> / ChannelFactory<T>) | 1 | 1 | Client side is supported on modern .NET via System.ServiceModel.* packages; regenerate proxies with dotnet-svcutil and configure bindings in code. |
@@ -77,6 +77,7 @@ Projects in the same wave do not depend on each other and can be migrated in par
 | Critical | LMS400 Entity Framework EDMX model | `LegacyShop.Data/ShopModel.edmx` | 1 |  |  |
 | Warning | LMS001 Legacy (non SDK-style) project format | `LegacyShop.Data/LegacyShop.Data.csproj` | 1 |  |  |
 | Warning | LMS002 packages.config is used | `LegacyShop.Data/packages.config` | 1 | 3 packages |  |
+| Warning | LMS110 Dependency on System.Web namespace | `LegacyShop.Data/OrderNotifications.cs:2` | 1 | System.Web |  |
 | Warning | LMS303 System.Drawing usage | `LegacyShop.Data/SnapshotStore.cs:1` | 1 | System.Drawing |  |
 | Warning | LMS402 Entity Framework 6 (System.Data.Entity) | `LegacyShop.Data/ShopContext.cs:1` | 1 | System.Data.Entity |  |
 | Warning | LMS402 Entity Framework 6 (System.Data.Entity) | `LegacyShop.Data/ShopModel.Context.cs:4` | 1 | System.Data.Entity.DbContext |  |
