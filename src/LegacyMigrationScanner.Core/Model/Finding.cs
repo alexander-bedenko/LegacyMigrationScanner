@@ -17,4 +17,10 @@ public sealed record Finding
     public int Count { get; init; } = 1;
     public string? Detail { get; init; }
     public string? Recommendation { get; init; }
+
+    /// <summary>
+    /// Stable identity across runs (<see cref="Baselines.FindingFingerprint"/>); set by the scanner,
+    /// used for <c>--baseline</c> diffs and as the SARIF partial fingerprint.
+    /// </summary>
+    public string? Fingerprint { get; init; }
 }

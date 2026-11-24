@@ -1,5 +1,6 @@
 using LegacyMigrationScanner.Cli;
 using LegacyMigrationScanner.Core.Model;
+using LegacyMigrationScanner.Tests.Baselines;
 using LegacyMigrationScanner.Tests.Infrastructure;
 using Microsoft.Extensions.Logging;
 
@@ -25,7 +26,7 @@ public sealed class CliTests : IDisposable
         var o = CliOptions.Parse([
             "scan", "app.sln", "-o", "out", "-f", "json,SARIF", "--fail-on", "warning", "--hours-per-point", "1.5",
             "--offline", "--nuget-source", "https://a.test/v3/index.json", "--nuget-source", "https://b.test/index.json",
-            "--no-cache", "-v", "detailed", "--sarif-root", ".",
+            "--no-cache", "-v", "detailed", "--sarif-root", ".", "--baseline", "base.json", "--fail-on-new",
         ]);
 
         Assert.Equal("app.sln", o.Path);
@@ -38,6 +39,8 @@ public sealed class CliTests : IDisposable
         Assert.True(o.NoCache);
         Assert.Equal(LogLevel.Debug, o.LogLevel);
         Assert.Equal(".", o.SarifBaseDirectory);
+        Assert.Equal("base.json", o.BaselinePath);
+        Assert.True(o.FailOnNew);
     }
 
     [Theory]
@@ -47,6 +50,8 @@ public sealed class CliTests : IDisposable
     [InlineData("scan a.sln --hours-per-point -1")]
     [InlineData("scan a.sln --nuget-source not-a-url")]
     [InlineData("scan a.sln --unknown")]
+    [InlineData("scan a.sln --fail-on-new")]
+    [InlineData("scan a.sln --baseline")]
     [InlineData("deploy")]
     public async Task InvalidArguments_Return64(string commandLine)
     {
@@ -85,6 +90,56 @@ public sealed class CliTests : IDisposable
         var (code, _, _) = await RunAsync("scan", TestHelpers.FixtureSolution, "-o", _output, "-f", "json", "--offline", "--fail-on", "critical");
 
         Assert.Equal(2, code);
+    }
+
+    [Fact]
+    public async Task FailOnNew_WithIdenticalBaseline_Succeeds_EvenWithCriticalFindings()
+    {
+        var baseline = BaselineTests.WriteReport(await BaselineTests.ScanFixtureAsync(), _output);
+
+        var (code, stdout, _) = await RunAsync(
+            "scan", TestHelpers.FixtureSolution, "-o", _output, "-f", "json", "--offline", "--baseline", baseline, "--fail-on-new");
+
+        Assert.Equal(0, code);
+        Assert.Contains("Baseline: 0 new", stdout);
+    }
+
+    [Fact]
+    public async Task FailOnNew_WithNewFinding_ReturnsThresholdExitCode_AndMarksSarif()
+    {
+        var result = await BaselineTests.ScanFixtureAsync();
+        var warning = result.Findings.First(f => f.Severity == Severity.Warning);
+        var baseline = BaselineTests.WriteReport(result, _output, root =>
+        {
+            var findings = root["findings"]!.AsArray();
+            findings.Remove(findings.First(f => (string?)f!["fingerprint"] == warning.Fingerprint));
+        });
+
+        var failing = await RunAsync(
+            "scan", TestHelpers.FixtureSolution, "-o", _output, "-f", "sarif,md", "--offline", "--baseline", baseline, "--fail-on-new");
+        // The only new finding is a warning, so a critical-only gate passes.
+        var critical = await RunAsync(
+            "scan", TestHelpers.FixtureSolution, "-o", _output, "-f", "json", "--offline", "--baseline", baseline, "--fail-on-new", "--fail-on", "critical");
+
+        Assert.Equal(2, failing.ExitCode);
+        Assert.Contains("Baseline: 1 new", failing.Stdout);
+        Assert.Equal(0, critical.ExitCode);
+
+        var sarif = File.ReadAllText(Path.Combine(_output, "LegacyShop.migration-report.sarif"));
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(sarif, "\"baselineState\": \"new\""));
+        var markdown = File.ReadAllText(Path.Combine(_output, "LegacyShop.migration-report.md"));
+        Assert.Contains("## Changes since baseline", markdown);
+        Assert.Contains(warning.RuleId, markdown);
+    }
+
+    [Fact]
+    public async Task MissingBaseline_ReturnsScanFailed()
+    {
+        var (code, _, stderr) = await RunAsync(
+            "scan", TestHelpers.FixtureSolution, "-o", _output, "--offline", "--baseline", Path.Combine(_output, "none.json"));
+
+        Assert.Equal(1, code);
+        Assert.Contains("Baseline report not found", stderr);
     }
 
     [Fact]

@@ -5,6 +5,14 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- `--baseline <report.json>`: diff against a previous JSON report by finding fingerprint (`lmsFindingHash/v1`,
+  ignores line numbers and counts). Console summary and Markdown report show new / fixed / unchanged findings,
+  SARIF results get `baselineState`, the JSON report a `baseline` object. 0.2.0 reports are fingerprinted on load.
+- `--fail-on-new`: exit code 2 when the scan has findings not in the baseline; with `--fail-on`, only new findings
+  at or above that severity count.
+- `fingerprint` on every finding in the JSON report (same value as the SARIF partial fingerprint).
+
 ### Changed
 - Repository-local `nuget.config` (nuget.org only) for reproducible restore independent of machine-wide feeds.
 - Repository URLs point to `github.com/alexander-bedenko/LegacyMigrationScanner`.

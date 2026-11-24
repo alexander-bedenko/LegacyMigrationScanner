@@ -42,6 +42,8 @@ lms scan <path> [options]
 | `-f, --format <list>` | `json,md` | `json`, `md`, `sarif` |
 | `--sarif-root <dir>` | current dir | Base for SARIF paths (repository root in CI) |
 | `--fail-on <severity>` | — | Exit code `2` if findings of `critical` / `warning` / `info` exist |
+| `--baseline <file>` | — | Previous JSON report: reports mark findings as new / unchanged / fixed |
+| `--fail-on-new` | off | Exit code `2` if there are new findings vs `--baseline` (with `--fail-on`: only new ones of that severity or higher) |
 | `--hours-per-point <n>` | `2` | Hours per effort point |
 | `--rules <file>` | — | JSON overriding rule points/severity (calibration) |
 | `--offline` | off | Catalog only, no network |
@@ -49,7 +51,22 @@ lms scan <path> [options]
 | `--cache-dir <dir>` / `--no-cache` | `%LOCALAPPDATA%/LegacyMigrationScanner/cache` | Package lookup cache |
 | `-v, --verbosity <level>` | `minimal` | `quiet`, `minimal`, `normal`, `detailed` (logs go to stderr) |
 
-Exit codes: `0` success · `1` scan failed · `2` `--fail-on` threshold exceeded · `64` invalid arguments · `130` cancelled.
+Exit codes: `0` success · `1` scan failed · `2` `--fail-on` / `--fail-on-new` threshold exceeded · `64` invalid arguments · `130` cancelled.
+
+### Baseline: gate only new blockers
+
+A legacy solution starts with hundreds of findings, so `--fail-on` alone fails every build. Commit a baseline
+once and let PRs fail only when they add something:
+
+```bash
+lms scan src/MyLegacyApp.sln -f json -o .                       # produces MyLegacyApp.migration-report.json
+mv MyLegacyApp.migration-report.json migration-baseline.json     # commit it
+lms scan src/MyLegacyApp.sln --baseline migration-baseline.json --fail-on-new --fail-on warning
+```
+
+Findings are matched by a stable fingerprint (`lmsFindingHash/v1`: rule, project, file, detail — not line numbers),
+so unrelated edits do not make old findings "new". The Markdown report gets a *Changes since baseline* section,
+SARIF results carry `baselineState`, the JSON report a `baseline` object. Refresh the baseline when findings are fixed.
 
 ### GitHub Actions
 

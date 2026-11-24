@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using LegacyMigrationScanner.Core.Baselines;
 using LegacyMigrationScanner.Core.Model;
 
 namespace LegacyMigrationScanner.Core.Reporting;
@@ -107,7 +108,7 @@ public sealed class SarifReportWriter(string baseDirectory) : IReportWriter
             physicalLocation["region"] = new JsonObject { ["startLine"] = line };
         }
 
-        return new JsonObject
+        var sarifResult = new JsonObject
         {
             ["ruleId"] = finding.RuleId,
             ["ruleIndex"] = ruleIndex[finding.RuleId],
@@ -117,7 +118,7 @@ public sealed class SarifReportWriter(string baseDirectory) : IReportWriter
             // Stable across runs so code scanning can track alerts when line numbers shift.
             ["partialFingerprints"] = new JsonObject
             {
-                ["lmsFindingHash/v1"] = Fingerprint($"{finding.RuleId}|{finding.Project}|{file}|{finding.Detail}"),
+                [FindingFingerprint.Name] = finding.Fingerprint ?? FindingFingerprint.Compute(finding.RuleId, finding.Project, file, finding.Detail),
             },
             ["properties"] = new JsonObject
             {
@@ -125,6 +126,13 @@ public sealed class SarifReportWriter(string baseDirectory) : IReportWriter
                 ["occurrences"] = finding.Count,
             },
         };
+
+        if (result.Baseline is { } baseline)
+        {
+            sarifResult["baselineState"] = baseline.IsNew(finding) ? "new" : "unchanged";
+        }
+
+        return sarifResult;
     }
 
     private static string Level(Severity severity) => severity switch
@@ -140,7 +148,4 @@ public sealed class SarifReportWriter(string baseDirectory) : IReportWriter
 
     private static string EnsureTrailingSeparator(string path) =>
         path.EndsWith(Path.DirectorySeparatorChar) ? path : path + Path.DirectorySeparatorChar;
-
-    private static string Fingerprint(string value) =>
-        Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(value)))[..32];
 }
