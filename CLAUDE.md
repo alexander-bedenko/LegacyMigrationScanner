@@ -30,7 +30,9 @@ Done: all ROADMAP stages (see `docs/ROADMAP.md`): SARIF, DI/async pipeline, CI/C
 `lms calibrate` (4), `-f html` (5b), `--baseline` / `--fail-on-new` (6), `--deep` (7), `lms mcp` MCP server (8).
 Published: https://github.com/alexander-bedenko/LegacyMigrationScanner (public). Releases: push tag `vX.Y.Z` →
 `release.yml` builds, tests, packs, takes notes from the `## [X.Y.Z]` CHANGELOG section (fails without it) and creates a
-GitHub Release with the .nupkg files. `NUGET_API_KEY` secret is not set, so nothing is pushed to NuGet.org yet.
+GitHub Release with the .nupkg files, and pushes them to NuGet.org via Trusted Publishing (OIDC, `NuGet/login@v1`; policy
+on nuget.org for repo + `release.yml`; repo variable `NUGET_USER`). No API key secret exists or is needed.
+`workflow_dispatch` with `tag` re-publishes an existing tag.
 Repo-local `nuget.config` pins nuget.org (the machine-wide config has a corporate feed that hangs restore).
 
 Design notes:
