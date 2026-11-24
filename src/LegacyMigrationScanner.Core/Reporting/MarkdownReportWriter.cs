@@ -18,7 +18,8 @@ public sealed class MarkdownReportWriter : IReportWriter
         var inv = CultureInfo.InvariantCulture;
         w.WriteLine($"# Migration report: {r.Solution}");
         w.WriteLine();
-        w.WriteLine($"Scanned {r.ScannedAt:yyyy-MM-dd HH:mm} with Legacy Migration Scanner {r.ToolVersion}. " +
+        w.WriteLine($"Scanned {r.ScannedAt:yyyy-MM-dd HH:mm} with Legacy Migration Scanner {r.ToolVersion}" +
+                    (r.Deep ? " in deep mode (semantic analysis + binary references). " : ". ") +
                     $"Estimate assumes {r.HoursPerPoint.ToString(inv)} h per point.");
         w.WriteLine();
 

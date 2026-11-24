@@ -5,6 +5,16 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Deep mode `--deep` (scan and mcp, ADR 0005): compiles each .NET Framework project with Roslyn without MSBuild —
+  Compile items, official .NET Framework reference assemblies (downloaded once from the NuGet feed into
+  `<cache>/refasm`, DLLs only), existing HintPath DLLs and referenced projects — and checks every used Framework type
+  against modern .NET. System.Web is reported by symbol (LMS110; `HttpUtility` alone no longer counts), other missing
+  APIs without a dedicated rule as new **LMS310**. Vendored HintPath DLLs are inspected: **LMS607** (references
+  Framework-only assemblies), **LMS608** (built for .NET Framework). Falls back to syntax analysis per project when
+  reference assemblies are unavailable; unresolved HintPaths are reported as a warning. Reports show the mode.
+- Fixture: `LegacyShop.Data/OrderNotifications.cs` (MSMQ + `HttpUtility`) showcasing deep vs syntax results.
+
 ## [0.4.0] - 2026-11-24
 
 ### Added

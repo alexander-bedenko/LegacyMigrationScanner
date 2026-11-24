@@ -35,6 +35,8 @@ public sealed record ScanSummary
     public required string ToolVersion { get; init; }
     public required DateTimeOffset ScannedAt { get; init; }
     public required double HoursPerPoint { get; init; }
+    /// <summary>True when the server runs with --deep (semantic analysis + vendored DLLs).</summary>
+    public bool Deep { get; init; }
     public required double TotalHoursP50 { get; init; }
     public required double TotalHoursP90 { get; init; }
     public required SeverityCounts Findings { get; init; }

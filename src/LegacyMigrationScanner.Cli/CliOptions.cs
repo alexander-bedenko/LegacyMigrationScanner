@@ -41,6 +41,10 @@ internal sealed class CliOptions
               --hours-per-point <n>   Hours per effort point (default: 2)
               --rules <file>          JSON file overriding rule points/severity (calibration)
 
+        Analysis options:
+              --deep                  Semantic analysis: compile projects against .NET Framework reference assemblies
+                                      (downloaded once from the NuGet feed) and inspect vendored DLLs (ADR 0005)
+
         Package options:
               --offline               Do not query NuGet feeds; use only the built-in package catalog
               --nuget-source <url>    NuGet V3 service index; repeatable (default: nuget.org)
@@ -83,6 +87,7 @@ internal sealed class CliOptions
     public string? BaselinePath { get; private set; }
     public bool FailOnNew { get; private set; }
     public bool Offline { get; private set; }
+    public bool Deep { get; private set; }
     public IReadOnlyList<Uri> NuGetSources => _sources;
     public string? CacheDirectory { get; private set; }
     public bool NoCache { get; private set; }
@@ -202,6 +207,9 @@ internal sealed class CliOptions
                 return true;
             case "--offline":
                 options.Offline = true;
+                return true;
+            case "--deep":
+                options.Deep = true;
                 return true;
             case "--nuget-source":
                 var raw = Next(args, ref i, arg);

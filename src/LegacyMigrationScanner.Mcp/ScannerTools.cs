@@ -30,6 +30,7 @@ public sealed class ScannerTools(ScanSession session)
             ToolVersion = r.ToolVersion,
             ScannedAt = r.ScannedAt,
             HoursPerPoint = r.HoursPerPoint,
+            Deep = r.Deep,
             TotalHoursP50 = r.TotalHoursP50,
             TotalHoursP90 = r.TotalHoursP90,
             Findings = SeverityCounts.Of(r.Findings),

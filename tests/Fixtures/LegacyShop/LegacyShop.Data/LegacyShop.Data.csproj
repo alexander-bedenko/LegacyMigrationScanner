@@ -12,8 +12,11 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Messaging" />
+    <Reference Include="System.Web" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="OrderNotifications.cs" />
     <Compile Include="ShopContext.cs" />
     <Compile Include="SnapshotStore.cs" />
     <Compile Include="ShopModel.Context.cs">

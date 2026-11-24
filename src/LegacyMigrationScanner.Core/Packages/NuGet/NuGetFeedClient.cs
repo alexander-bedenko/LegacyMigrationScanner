@@ -97,6 +97,32 @@ public sealed class NuGetFeedClient
         }
     }
 
+    /// <summary>
+    /// Downloads a .nupkg into <paramref name="destination"/>; returns false if that version does not exist on this feed.
+    /// Only the response headers are subject to the HTTP client timeout, so large packages are not cut off.
+    /// </summary>
+    public async Task<bool> DownloadPackageAsync(string packageId, string version, Stream destination, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(packageId);
+        ArgumentNullException.ThrowIfNull(version);
+        ArgumentNullException.ThrowIfNull(destination);
+        var baseAddress = await _baseAddress.Value.WaitAsync(cancellationToken);
+        var id = Uri.EscapeDataString(packageId.ToLowerInvariant());
+        var normalized = Uri.EscapeDataString(NuGetVersion.Normalize(version));
+        var url = new Uri(baseAddress, $"{id}/{normalized}/{id}.{normalized}.nupkg");
+
+        using var response = await SendAsync(url, cancellationToken);
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+
+        response.EnsureSuccessStatusCode();
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        await stream.CopyToAsync(destination, cancellationToken);
+        return true;
+    }
+
     internal static List<string> ParseTargetFrameworks(XDocument nuspec)
     {
         // <dependencies><group targetFramework="..."/></dependencies>, <frameworkReferences><group .../></frameworkReferences>

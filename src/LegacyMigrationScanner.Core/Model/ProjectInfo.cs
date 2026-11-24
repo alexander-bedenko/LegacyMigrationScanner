@@ -2,6 +2,9 @@ namespace LegacyMigrationScanner.Core.Model;
 
 public sealed record PackageInfo(string Id, string Version, PackageSource Source);
 
+/// <summary>A <c>&lt;Reference&gt;</c> with a <c>HintPath</c>: assembly name and the absolute DLL path (may not exist).</summary>
+public sealed record HintPathReference(string Name, string FullPath);
+
 /// <summary>Static description of a project obtained from its .csproj and directory, without building.</summary>
 public sealed class ProjectInfo
 {
@@ -17,6 +20,10 @@ public sealed class ProjectInfo
     public string? OutputType { get; init; }
 
     public IReadOnlyList<string> AssemblyReferences { get; init; } = [];
+    /// <summary>References with a HintPath (restored packages or vendored DLLs).</summary>
+    public IReadOnlyList<HintPathReference> HintPathReferences { get; init; } = [];
+    /// <summary>The legacy <c>TargetFrameworkVersion</c> (e.g. v4.8), when present.</summary>
+    public string? TargetFrameworkVersion => TargetFrameworks.FirstOrDefault(tf => tf.StartsWith('v') || tf.StartsWith('V'));
     /// <summary>Absolute paths of referenced projects.</summary>
     public IReadOnlyList<string> ProjectReferences { get; init; } = [];
     public IReadOnlyList<PackageInfo> Packages { get; init; } = [];

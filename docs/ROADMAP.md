@@ -12,13 +12,16 @@
 | 4. Калибровка | Команда `lms calibrate`: подбор hoursPerPoint по фактическим часам прошлой миграции | ✅ 0.3.0 |
 | 5b. HTML | Однофайловый HTML-дашборд (`-f html`): плитки, effort-бары P50/P90, фильтр находок, baseline | ✅ 0.3.0 |
 | 6. Baseline | `--baseline <json>`: diff с прошлым прогоном по fingerprint, `--fail-on-new` для PR-гейтов | ✅ 0.3.0 |
-| 7. Глубокий режим | MSBuildWorkspace + семантическая модель; анализ бинарных ссылок (HintPath DLL) | ⏳ |
+| 7. Глубокий режим | `--deep`: семантическая модель без MSBuild (Roslyn + reference assemblies .NET Framework с NuGet), LMS310; анализ vendored DLL по HintPath (LMS607/608) — ADR 0005 | ✅ Unreleased |
 | 8. AI-слой | `lms mcp`: MCP-сервер (stdio) с `scan_solution`, `get_findings`, `explain_finding`, `get_packages` и промптом `plan_migration` (LLM-план миграции) | ✅ 0.4.0 |
 
 ## Бэклог / известные ограничения
 
 - Авторизация в приватных фидах (PAT / `nuget.config` credentials) не поддерживается.
 - `[ServiceContract]` на клиентских прокси учитывается как серверный контракт (LMS210).
-- Синтаксический анализ: `using System.Web;` + `HttpUtility` даёт LMS110, хотя `HttpUtility` есть в modern .NET.
+- Синтаксический анализ: `using System.Web;` + `HttpUtility` даёт LMS110, хотя `HttpUtility` есть в modern .NET
+  (в `--deep` исправлено: LMS110 по символам).
+- `--deep`: компиляция без MSBuild — не вычисляются условия/импорты MSBuild и генерируемый код; доступность API
+  проверяется по runtime самого инструмента (net10.0), а не по целевому TFM пользователя.
 - VB.NET-проекты пропускаются с предупреждением; MSBuild Condition/Import не вычисляются.
 - Для пакетов без framework-групп в nuspec статус Unknown (нужен анализ lib/ в nupkg).

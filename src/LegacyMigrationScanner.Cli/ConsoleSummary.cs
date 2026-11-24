@@ -11,7 +11,8 @@ internal static class ConsoleSummary
         var critical = result.Findings.Count(f => f.Severity == Severity.Critical);
 
         output.WriteLine();
-        output.WriteLine(string.Create(inv, $"{result.Solution}: {result.Projects.Count} projects, {result.Findings.Count} findings ({critical} critical)"));
+        output.WriteLine(string.Create(inv, $"{result.Solution}: {result.Projects.Count} projects, {result.Findings.Count} findings ({critical} critical)")
+                         + (result.Deep ? " [deep]" : ""));
         output.WriteLine(string.Create(inv, $"Estimated effort: P50 {result.TotalHoursP50:0} h, P90 {result.TotalHoursP90:0} h"));
         if (result.Baseline is { } b)
         {

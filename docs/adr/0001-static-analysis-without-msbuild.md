@@ -20,3 +20,4 @@ The default mode reads `.sln/.slnx/.csproj/packages.config` as XML and analyzes 
 - Detection is name-based: `using System.Web;` + `HttpUtility` yields LMS110 even though `HttpUtility` exists
   on modern .NET; aliases and `global using` in other files are not resolved; MSBuild conditions/imports are ignored.
 - A future **deep mode** (roadmap stage 7) can add `MSBuildWorkspace` + semantic model as an opt-in for precision.
+  → Implemented without MSBuild as `--deep`: see [ADR 0005](0005-deep-mode-without-msbuild.md). The default stays syntax-only.
